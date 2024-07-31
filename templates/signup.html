@@ -24,7 +24,7 @@
         .signup-container h2 {
             margin-bottom: 20px;
             color: #333;
-            font-size: 28px; /* Adjust the size as needed */
+            font-size: 28px;
         }
         .signup-container input[type="email"],
         .signup-container input[type="password"] {
@@ -66,12 +66,18 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const passwordRe = document.getElementById('password-re').value;
-    
+
+            // Validate password strength
+            if (!isValidPassword(password)) {
+                alert('Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.');
+                return;
+            }
+
             if (password !== passwordRe) {
                 alert('Passwords do not match.');
                 return;
             }
-    
+
             fetch('/signup', {
                 method: 'POST',
                 headers: {
@@ -93,6 +99,15 @@
                   console.error('Error:', error);
               });
         });
+
+        function isValidPassword(password) {
+            // Check password validity
+            const minLength = 8;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            return password.length >= minLength && hasUppercase && hasLowercase && hasNumber;
+        }
     </script>
 </body>
 </html>
