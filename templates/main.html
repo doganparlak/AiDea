@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar {
+            width: 175px;
+            background-color: #333;
+            color: white;
+            padding: 15px;
+            height: 100vh;
+            box-sizing: border-box;
+            position: relative; /* To position logout button */
+        }
+        .sidebar h2 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 10px;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+        .sidebar a:hover {
+            background-color: #575757;
+        }
+        .sidebar .logout {
+            position: absolute;
+            bottom: 15px;
+            width: 70%; /* Smaller width */
+            text-align: center;
+            color: white;
+            padding: 8px; /* Smaller padding */
+            background-color: #d9534f; /* Bootstrap danger color */
+            text-decoration: none;
+            font-size: 14px; /* Smaller font size */
+            border-radius: 4px;
+        }
+        .sidebar .logout:hover {
+            background-color: #c9302c; /* Darker red */
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .symbol-add-container, .plot-container {
+            height: 300px;
+        }
+        .symbol-add-container {
+            float: left;
+            width: 20%; /* Increased width */
+            height: 60%; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+            margin-right: 20px;
+        }
+        .symbol-add-container .add-symbol {
+            font-size: 72px; /* Increased font size */
+            cursor: pointer;
+        }
+        .plot-container {
+            float: left;
+            width: 76%;
+            height: 60%; 
+            border: 1px solid #ccc;
+        }
+        .bottom-container {
+            clear: both;
+            margin-top: 450px; 
+        }
+        .options-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .options-container select {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .predict-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 150px; /* Increased margin-top to move it further down */
+        }
+        .predict-button-container button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .predict-button-container button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <a href="#">My Profile</a>
+        <a href="#">Main Menu</a>
+        <a href="#">About Models</a>
+        <a href="/logout" class="logout">Logout</a>
+    </div>
+    <div class="content">
+        <div class="symbol-add-container">
+            <div class="add-symbol">+</div>
+        </div>
+        <div class="plot-container">
+            <!-- Placeholder for plot -->
+        </div>
+        <div class="bottom-container">
+            <div class="options-container">
+                <select id="historicalDataLength">
+                    <option value="" disabled selected>Select Historical Data Length</option>
+                    <!-- Add options here -->
+                </select>
+                <select id="forecastDays">
+                    <option value="" disabled selected>Select Number of Forecast Days</option>
+                    <!-- Add options here -->
+                </select>
+                <select id="modelName">
+                    <option value="" disabled selected>Select Model Name</option>
+                    <!-- Add options here -->
+                </select>
+            </div>
+            <div class="predict-button-container">
+                <button onclick="predict()">Predict</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function predict() {
+            // Call your backend predict method
+            alert("Predict button clicked!");
+        }
+    </script>
+</body>
+</html>
