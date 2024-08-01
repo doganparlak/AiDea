@@ -11,10 +11,10 @@
             font-family: Arial, sans-serif;
         }
         .sidebar {
-            width: 175px;
+            width: 15%;
             background-color: #333;
             color: white;
-            padding: 15px;
+            padding: 1rem;
             height: 100vh;
             box-sizing: border-box;
             position: relative; /* To position logout button */
@@ -22,87 +22,136 @@
         .sidebar h2 {
             text-align: center;
             color: #fff;
-            margin-bottom: 30px;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
         }
         .sidebar a {
             display: block;
             color: white;
-            padding: 10px;
+            padding: 0.5rem;
             text-decoration: none;
-            margin-bottom: 10px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
         }
         .sidebar a:hover {
             background-color: #575757;
         }
         .sidebar .logout {
             position: absolute;
-            bottom: 15px;
+            bottom: 1rem;
             width: 70%; /* Smaller width */
             text-align: center;
             color: white;
-            padding: 8px; /* Smaller padding */
+            padding: 0.5rem; /* Smaller padding */
             background-color: #d9534f; /* Bootstrap danger color */
             text-decoration: none;
-            font-size: 14px; /* Smaller font size */
-            border-radius: 4px;
+            font-size: 0.9rem; /* Smaller font size */
+            border-radius: 0.25rem;
         }
         .sidebar .logout:hover {
             background-color: #c9302c; /* Darker red */
         }
         .content {
             flex: 1;
-            padding: 20px;
+            padding: 1.5rem;
             box-sizing: border-box;
-        }
-        .symbol-add-container, .plot-container {
-            height: 300px;
         }
         .symbol-add-container {
             float: left;
-            width: 20%; /* Increased width */
-            height: 60%; 
+            width: 20%;
+            height: 56.9%;
             display: flex;
+            flex-direction: column;
             justify-content: center;
+            border: 1px solid #ccc;
+            margin-right: 1rem;
+            position: relative;
+            padding: 1rem;
+            border-radius: 0.5rem; /* Rounded corners */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+        }
+        .symbol-add-container h3 {
+            text-align: center;
+            margin: 0 0 1rem 0;
+            font-size: 1.6rem; /* Increase font size */
+        }
+        .symbol-add-container .symbol-input-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .symbol-add-container .symbol-input {
+            display: flex;
             align-items: center;
             border: 1px solid #ccc;
-            margin-right: 20px;
+            border-radius: 0.25rem;
+            flex: 1;
+            width: 100%;
         }
-        .symbol-add-container .add-symbol {
-            font-size: 72px; /* Increased font size */
+        .symbol-add-container .symbol-input input {
+            border: none;
+            padding: 0.6rem;
+            margin-right: 0; /* No margin on right */
+            flex: 1;
+            text-align: center; /* Center text inside the input */
+            font-size: 1.2rem; /* Increase font size */
+        }
+        .symbol-add-container .symbol-list {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            width: 100%;
+            height: calc(100% - 4rem); /* Adjust height to fit within container */
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        .symbol-add-container .symbol-list div {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
             cursor: pointer;
+        }
+        .symbol-add-container .symbol-list div:hover {
+            background-color: #f4f4f4;
         }
         .plot-container {
             float: left;
             width: 76%;
-            height: 60%; 
+            height: 60%;
             border: 1px solid #ccc;
+            border-radius: 0.25rem;
         }
         .bottom-container {
             clear: both;
-            margin-top: 450px; 
+            margin-top: 40rem; /* Adjust to fit content */
         }
         .options-container {
             display: flex;
             justify-content: space-around;
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
         }
         .options-container select {
-            padding: 10px;
-            border-radius: 4px;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
             border: 1px solid #ccc;
+            font-size: 1.25rem;
+            text-align: center; /* Center the text inside the dropdown */
+            text-align-last: center; /* Center the selected option text */
         }
         .predict-button-container {
             display: flex;
             justify-content: center;
-            margin-top: 150px; /* Increased margin-top to move it further down */
+            margin-top: 14rem;
         }
         .predict-button-container button {
-            padding: 10px 20px;
+            padding: 0.75rem 1.5rem;
             background-color: #28a745;
             border: none;
-            border-radius: 4px;
+            border-radius: 0.25rem;
             color: white;
-            font-size: 16px;
+            font-size: 1.75rem;
             cursor: pointer;
         }
         .predict-button-container button:hover {
@@ -113,32 +162,53 @@
 <body>
     <div class="sidebar">
         <h2>Menu</h2>
-        <a href="#">My Profile</a>
-        <a href="#">Main Menu</a>
-        <a href="#">About Models</a>
-        <a href="/logout" class="logout">Logout</a>
+        <a href="/my_profile">My Profile</a>
+        <a href="/main">Forecaster</a>
+        <a href="/about_models">About Models</a>
+        <a href="/logout" class="logout">Log Out</a>
     </div>
     <div class="content">
         <div class="symbol-add-container">
-            <div class="add-symbol">+</div>
+            <h3>Symbols</h3>
+            <div class="symbol-input-container">
+                <div class="symbol-input">
+                    <input type="text" id="symbol-name" placeholder="Enter symbol">
+                </div>
+            </div>
+            <div class="symbol-list" id="symbol-list">
+                <!-- List of symbols will be dynamically added here -->
+            </div>
         </div>
         <div class="plot-container">
             <!-- Placeholder for plot -->
         </div>
         <div class="bottom-container">
             <div class="options-container">
-                <select id="historicalDataLength">
-                    <option value="" disabled selected>Select Historical Data Length</option>
+                <select id="model_type">
+                    <option value="" disabled selected>Model Name</option>
                     <!-- Add options here -->
+                    <option value="AR">AR</option> 
+                    <option value="ARIMA">ARIMA</option> 
+                    <option value="SARIMA">SARIMA</option> 
                 </select>
-                <select id="forecastDays">
-                    <option value="" disabled selected>Select Number of Forecast Days</option>
+                <select id="data_length">
+                    <option value="" disabled selected>Historical Data Length</option>
                     <!-- Add options here -->
+                    <option value="1_month">1 Month</option>
+                    <option value="3_month">3 Months</option>
+                    <option value="6_month">6 Months</option>
+                    <option value="1_year">1 Year</option>
+                    <option value="2_year">2 Years</option>
                 </select>
-                <select id="modelName">
-                    <option value="" disabled selected>Select Model Name</option>
+                <select id="forecast_days">
+                    <option value="" disabled selected>Number of Forecast Days</option>
                     <!-- Add options here -->
-                </select>
+                    <option value="1_week">1 Week</option>
+                    <option value="1_month">1 Month</option>
+                    <option value="3_month">3 Months</option>
+                    <option value="6_month">6 Months</option>
+                    <option value="1_year">1 Year</option>
+                </select>   
             </div>
             <div class="predict-button-container">
                 <button onclick="predict()">Predict</button>
@@ -150,6 +220,31 @@
         function predict() {
             // Call your backend predict method
             alert("Predict button clicked!");
+        }
+
+        function addSymbol() {
+            const symbolInputField = document.getElementById('symbol-name');
+            const symbol = symbolInputField.value.trim();
+            if (symbol) {
+                fetch('/add_symbol', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ symbol })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const symbolDiv = document.createElement('div');
+                        symbolDiv.textContent = symbol;
+                        symbolList.appendChild(symbolDiv);
+                        symbolInputField.value = '';
+                    } else {
+                        alert('Symbol not found or already exists.');
+                    }
+                });
+            }
         }
     </script>
 </body>
