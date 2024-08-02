@@ -7,17 +7,16 @@
     <style>
         body {
             display: flex;
+            flex-direction: column;
             margin: 0;
             font-family: Arial, sans-serif;
         }
         .sidebar {
-            width: 15%;
+            width: 100%;
             background-color: #333;
             color: white;
             padding: 1rem;
-            height: 100vh;
             box-sizing: border-box;
-            position: relative; /* To position logout button */
         }
         .sidebar h2 {
             text-align: center;
@@ -37,113 +36,169 @@
             background-color: #575757;
         }
         .sidebar .logout {
-            position: absolute;
-            bottom: 1rem;
-            width: 70%; /* Smaller width */
             text-align: center;
             color: white;
-            padding: 0.5rem; /* Smaller padding */
-            background-color: #d9534f; /* Bootstrap danger color */
+            padding: 0.5rem;
+            background-color: #d9534f;
             text-decoration: none;
-            font-size: 0.9rem; /* Smaller font size */
+            font-size: 0.9rem;
             border-radius: 0.25rem;
+            display: block;
+            margin-top: 29rem;
         }
         .sidebar .logout:hover {
-            background-color: #c9302c; /* Darker red */
+            background-color: #c9302c;
         }
-        .content {
-            flex: 1;
-            padding: 1.5rem;
-            box-sizing: border-box;
-        }
-        .symbol-add-container {
-            float: left;
-            width: 20%;
-            height: 56.9%;
+        .main-content {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            border: 1px solid #ccc;
-            margin-right: 1rem;
-            position: relative;
             padding: 1rem;
-            border-radius: 0.5rem; /* Rounded corners */
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+            box-sizing: border-box;
+        }
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .symbol-add-container, .plot-container {
+            box-sizing: border-box;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+        .symbol-add-container {
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
         }
         .symbol-add-container h3 {
             text-align: center;
             margin: 0 0 1rem 0;
-            font-size: 1.6rem; /* Increase font size */
+            font-size: 1.6rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
         }
-        .symbol-add-container .symbol-input-container {
+        .symbol-input-container {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             margin-bottom: 1rem;
         }
-        .symbol-add-container .symbol-input {
+        .symbol-input {
             display: flex;
             align-items: center;
             border: 1px solid #ccc;
             border-radius: 0.25rem;
             flex: 1;
-            width: 100%;
+            margin-right: 0.5rem;
+            max-width: 100%;
         }
-        .symbol-add-container .symbol-input input {
+        .symbol-input input {
             border: none;
             padding: 0.6rem;
-            margin-right: 0; /* No margin on right */
             flex: 1;
-            text-align: center; /* Center text inside the input */
-            font-size: 1.2rem; /* Increase font size */
+            text-align: center;
+            font-size: 1.2rem;
         }
-        .symbol-add-container .symbol-list {
+        .symbol-input button {
+            padding: 0.3rem 0.6rem;
+            background-color: #28a745;
+            border: none;
+            border-radius: 0.25rem;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: auto;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .symbol-input button::before {
+            content: '+';
+            font-size: 2rem;
+            display: inline-block;
+            transform: scale(1.2);
+            transform-origin: center;
+        }
+        .symbol-input button:hover {
+            background-color: #218838;
+        }
+        .symbol-list {
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
             width: 100%;
-            height: calc(100% - 4rem); /* Adjust height to fit within container */
+            height: 300px;
             overflow-y: auto;
             padding: 0.5rem;
+            box-sizing: border-box;
         }
-        .symbol-add-container .symbol-list div {
+        .symbol-list div {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 0.5rem;
             border: 1px solid #ddd;
             margin-bottom: 0.5rem;
             border-radius: 0.25rem;
             cursor: pointer;
+            position: relative;
+            height: 1.5rem; /* Set a fixed height for consistency */
+            transition: background-color 0.3s; /* Smooth transition */
         }
-        .symbol-add-container .symbol-list div:hover {
-            background-color: #f4f4f4;
+        .symbol-list div.selected {
+            background-color: #d0e6f7; /* Highlight color for selected item */
+            border-color: #007bff; /* Highlight border color */
+        }
+        .symbol-list .symbol-text {
+            flex: 1; /* Take up remaining space */
+        }
+        .symbol-list button {
+            background-color: #dc3545;
+            border: none;
+            color: white;
+            border-radius: 0.25rem;
+            padding: 0.3rem 0.8rem;
+            cursor: pointer;
+            font-size: 1.2rem;
+            height: 175%; /* Ensure the button height matches the symbol box height */
+            align-items: center; /* Center content vertically */
+            justify-content: center;
+            margin-right: -0.85rem; /* Remove any margin to ensure it aligns with the right edge */
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+            display: flex;
+        }
+        .symbol-list button:hover {
+            background-color: #c82333;
         }
         .plot-container {
-            float: left;
-            width: 76%;
-            height: 60%;
             border: 1px solid #ccc;
             border-radius: 0.25rem;
+            height: 450px;
         }
         .bottom-container {
-            clear: both;
-            margin-top: 40rem; /* Adjust to fit content */
+            margin-top: 0.5rem;
         }
         .options-container {
             display: flex;
-            justify-content: space-around;
+            flex-wrap: wrap;
+            justify-content: space-between;
             margin-bottom: 1.5rem;
         }
         .options-container select {
+            text-align: center;
             padding: 0.75rem;
             border-radius: 0.25rem;
             border: 1px solid #ccc;
             font-size: 1.25rem;
-            text-align: center; /* Center the text inside the dropdown */
-            text-align-last: center; /* Center the selected option text */
+            margin-bottom: 1.25rem;
+            width: 100%;
         }
         .predict-button-container {
             display: flex;
             justify-content: center;
-            margin-top: 14rem;
+            margin-top: 6.5rem;
         }
         .predict-button-container button {
             padding: 0.75rem 1.5rem;
@@ -157,6 +212,31 @@
         .predict-button-container button:hover {
             background-color: #218838;
         }
+        @media (min-width: 768px) {
+            .sidebar {
+                width: 15%;
+                height: 100vh;
+                position: fixed;
+            }
+            .main-content {
+                margin-left: 15%;
+                width: 85%;
+            }
+            .content {
+                flex-direction: row;
+                flex-wrap: nowrap;
+            }
+            .symbol-add-container {
+                width: 25%;
+                margin-right: 2%;
+            }
+            .plot-container {
+                width: 100%;
+            }
+            .options-container select {
+                width: 25%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -167,33 +247,34 @@
         <a href="/about_models">About Models</a>
         <a href="/logout" class="logout">Log Out</a>
     </div>
-    <div class="content">
-        <div class="symbol-add-container">
-            <h3>Symbols</h3>
-            <div class="symbol-input-container">
-                <div class="symbol-input">
-                    <input type="text" id="symbol-name" placeholder="Enter symbol">
+    <div class="main-content">
+        <div class="content">
+            <div class="symbol-add-container">
+                <h3>Symbols</h3>
+                <div class="symbol-input-container">
+                    <div class="symbol-input">
+                        <input type="text" id="symbol-name" placeholder="Enter symbol">
+                        <button onclick="addSymbol()"></button>
+                    </div>
+                </div>
+                <div class="symbol-list" id="symbol-list">
+                    <!-- List of symbols will be dynamically added here -->
                 </div>
             </div>
-            <div class="symbol-list" id="symbol-list">
-                <!-- List of symbols will be dynamically added here -->
+            <div class="plot-container">
+                <!-- Placeholder for plot -->
             </div>
-        </div>
-        <div class="plot-container">
-            <!-- Placeholder for plot -->
         </div>
         <div class="bottom-container">
             <div class="options-container">
                 <select id="model_type">
                     <option value="" disabled selected>Model Name</option>
-                    <!-- Add options here -->
                     <option value="AR">AR</option> 
                     <option value="ARIMA">ARIMA</option> 
                     <option value="SARIMA">SARIMA</option> 
                 </select>
                 <select id="data_length">
                     <option value="" disabled selected>Historical Data Length</option>
-                    <!-- Add options here -->
                     <option value="1_month">1 Month</option>
                     <option value="3_month">3 Months</option>
                     <option value="6_month">6 Months</option>
@@ -202,7 +283,6 @@
                 </select>
                 <select id="forecast_days">
                     <option value="" disabled selected>Number of Forecast Days</option>
-                    <!-- Add options here -->
                     <option value="1_week">1 Week</option>
                     <option value="1_month">1 Month</option>
                     <option value="3_month">3 Months</option>
@@ -217,15 +297,56 @@
     </div>
 
     <script>
-        function predict() {
-            // Call your backend predict method
-            alert("Predict button clicked!");
+        document.addEventListener('DOMContentLoaded', (event) => {
+            fetchSymbols();
+        });
+
+        function fetchSymbols() {
+            fetch('/get_symbols')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.symbols) {
+                        const symbolList = document.getElementById('symbol-list');
+                        symbolList.innerHTML = '';
+                        data.symbols.forEach(symbol => {
+                            const symbolDiv = document.createElement('div');
+                            symbolDiv.setAttribute('data-symbol', symbol);
+
+                            const symbolText = document.createElement('span');
+                            symbolText.textContent = symbol;
+                            symbolText.className = 'symbol-text';
+
+                            const deleteButton = document.createElement('button');
+                            deleteButton.innerHTML = '&ndash;';
+                            deleteButton.onclick = (event) => {
+                                event.stopPropagation(); // Prevent the click event from propagating to the div
+                                deleteSymbol(symbol);
+                            };
+
+                            symbolDiv.appendChild(symbolText);
+                            symbolDiv.appendChild(deleteButton);
+                            symbolDiv.addEventListener('click', () => selectSymbol(symbolDiv));
+                            symbolList.appendChild(symbolDiv);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching symbols:', error));
+        }
+
+        function selectSymbol(symbolDiv) {
+            const selectedSymbol = document.querySelector('.symbol-list div.selected');
+            if (selectedSymbol && selectedSymbol !== symbolDiv) {
+                selectedSymbol.classList.remove('selected');
+            }
+            symbolDiv.classList.add('selected');
         }
 
         function addSymbol() {
             const symbolInputField = document.getElementById('symbol-name');
-            const symbol = symbolInputField.value.trim();
+            let symbol = symbolInputField.value.trim();
             if (symbol) {
+                symbol = symbol.toUpperCase();
+
                 fetch('/add_symbol', {
                     method: 'POST',
                     headers: {
@@ -236,16 +357,44 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        const symbolDiv = document.createElement('div');
-                        symbolDiv.textContent = symbol;
-                        symbolList.appendChild(symbolDiv);
+                        fetchSymbols(); // Refresh the symbol list
                         symbolInputField.value = '';
                     } else {
                         alert('Symbol not found or already exists.');
                     }
-                });
+                })
+                .catch(error => console.error('Error adding symbol:', error));
             }
         }
+
+        function deleteSymbol(symbol) {
+            fetch('/delete_symbol', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ symbol })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fetchSymbols(); // Refresh the symbol list
+                } else {
+                    alert('Symbol not found.');
+                }
+            })
+            .catch(error => console.error('Error deleting symbol:', error));
+        }
+
+        function predict() {
+            alert("Predict button clicked!");
+        }
+
+        document.getElementById('symbol-name').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                addSymbol();
+            }
+        });
     </script>
 </body>
 </html>
