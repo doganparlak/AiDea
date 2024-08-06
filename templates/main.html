@@ -177,9 +177,16 @@
             background-color: #c82333;
         }
         .plot-container {
+            width: 50rem; /* Fixed width for the container */
+            height: 35rem; /* Fixed height for the container */
             border: 0.05rem solid #ccc;
             border-radius: 0.25rem;
-            height: 35rem;
+            display: flex;
+        }
+        .plot-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: fill; /* Ensure the image maintains its aspect ratio */
         }
         .bottom-container {
             margin-top: 1rem;
@@ -247,9 +254,9 @@
 <body>
     <div class="sidebar">
         <h2>Menu</h2>
-        <a href="/my_profile">My Profile</a>
-        <a href="/main">Forecaster</a>
-        <a href="/about_models">About Models</a>
+        <a href="#" onclick="loadPage('my_profile')">My Profile</a>
+        <a href="#" onclick="loadPage('forecaster')">Forecaster</a>
+        <a href="#" onclick="loadPage('about_models')">About Models</a>
         <a href="/logout" class="logout">Log Out</a>
     </div>
     <div class="main-content">
@@ -281,17 +288,17 @@
                 <select id="data_length">
                     <option value="" disabled selected>Historical Data Length</option>
                     <option value="1_month">1 Month</option>
-                    <option value="3_month">3 Months</option>
-                    <option value="6_month">6 Months</option>
+                    <option value="3_months">3 Months</option>
+                    <option value="6_months">6 Months</option>
                     <option value="1_year">1 Year</option>
-                    <option value="2_year">2 Years</option>
+                    <option value="2_years">2 Years</option>
                 </select>
                 <select id="forecast_days">
                     <option value="" disabled selected>Number of Forecast Days</option>
                     <option value="1_week">1 Week</option>
                     <option value="1_month">1 Month</option>
-                    <option value="3_month">3 Months</option>
-                    <option value="6_month">6 Months</option>
+                    <option value="3_months">3 Months</option>
+                    <option value="6_months">6 Months</option>
                     <option value="1_year">1 Year</option>
                 </select>   
             </div>
@@ -305,6 +312,24 @@
         document.addEventListener('DOMContentLoaded', (event) => {
             fetchSymbols();
         });
+        function loadPage(page) {
+            const mainContent = document.querySelector('.main-content');
+            
+            fetch(`/${page}`)
+                .then(response => response.text())
+                .then(html => {
+                    // Preserve the plot
+                    const plotContainer = document.querySelector('.plot-container');
+                    const plotHtml = plotContainer.innerHTML;
+
+                    // Inject the new page content
+                    mainContent.innerHTML = html;
+
+                    // Restore the plot
+                    document.querySelector('.plot-container').innerHTML = plotHtml;
+                })
+                .catch(error => console.error('Error loading page:', error));
+        }
 
         function fetchSymbols() {
             fetch('/get_symbols')
@@ -392,7 +417,50 @@
         }
 
         function predict() {
-            alert("Predict button clicked!");
+            const selectedSymbolDiv = document.querySelector('.symbol-list div.selected');
+            if (!selectedSymbolDiv) {
+                alert("Please select a symbol.");
+                return;
+            }
+            
+            const symbol = selectedSymbolDiv.getAttribute('data-symbol');
+            const modelType = document.getElementById('model_type').value;
+            const dataLength = document.getElementById('data_length').value;
+            const forecastDays = document.getElementById('forecast_days').value;
+
+            if (!modelType || !dataLength || !forecastDays) {
+                alert("Please select model type, data length, and forecast days.");
+                return;
+            }
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    symbol: symbol,
+                    model_type: modelType,
+                    data_length: dataLength,
+                    forecast_days: forecastDays
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    const plotContainer = document.querySelector('.plot-container');
+                    // Create a new image element
+                    const newPlotImg = document.createElement('img');
+                    newPlotImg.src = `data:image/png;base64,${data.plot}`;
+                    newPlotImg.alt = "Forecast Plot";
+                    // Replace existing plot image if present
+                    plotContainer.innerHTML = '';
+                    plotContainer.appendChild(newPlotImg);
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
 
         document.getElementById('symbol-name').addEventListener('keypress', function(event) {
