@@ -72,7 +72,7 @@
             border-radius: 0.5rem;
             box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
             padding: 1rem;
-            height: 35rem;
+            height: 42rem;
         }
         .symbol-add-container h3 {
             text-align: center;
@@ -86,6 +86,7 @@
             align-items: center;
             justify-content: space-between;
             margin-bottom: 1rem;
+            gap: 0.5rem; /* NEW Add some space between the input and the button */
         }
         .symbol-input {
             display: flex;
@@ -95,8 +96,9 @@
             flex: 1;
             margin-right: 0.1rem;
             margin-left: 0.1rem;
-            max-width: 100%;
+            max-width: 85%;
             max-height: 100%;
+            position: relative; /* NEW Ensure positioning context for the button */
         }
         .symbol-input input {
             border: none;
@@ -106,7 +108,7 @@
             font-size: 1.2rem;
         }
         .symbol-input button {
-            padding: 0.35rem 0.65rem;
+            padding: 0.52rem 0.65rem;
             background-color: #28a745;
             border: none;
             border-radius: 0.20rem;
@@ -118,12 +120,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-left: -2rem; /* NEW Space between input and button */
         }
         .symbol-input button::before {
             content: '+';
             font-size: 2rem;
             display: inline-block;
-            transform: scale(1.35);
+            transform: scale(1.25);
             transform-origin: bottom;
         }
         .symbol-input button:hover {
@@ -177,15 +180,18 @@
             background-color: #c82333;
         }
         .plot-container {
-            width: 50rem; /* Fixed width for the container */
-            height: 35rem; /* Fixed height for the container */
+            width: 60rem; /* Fixed width for the container */
+            height: 42rem; /* Fixed height for the container */
             border: 0.05rem solid #ccc;
             border-radius: 0.25rem;
             display: flex;
+            align-items: center; /* Center the content vertically */
+            justify-content: center; /* Center the content horizontally */
+            overflow: hidden;
         }
         .plot-container img {
-            max-width: 100%;
-            max-height: 100%;
+            max-width: 120%;
+            max-height: 120%;
             object-fit: fill; /* Ensure the image maintains its aspect ratio */
         }
         .bottom-container {
@@ -210,7 +216,7 @@
         .predict-button-container {
             display: flex;
             justify-content: center;
-            margin-top: 17rem;
+            margin-top: 10rem;
         }
         .predict-button-container button {
             padding: 0.75rem 1.5rem;
@@ -224,6 +230,32 @@
         .predict-button-container button:hover {
             background-color: #218838;
         }
+        /* Base styles for mobile (default) */
+        .sidebar {
+            width: 100%;
+            height: auto;
+            position: static;
+        }
+        .main-content {
+            margin-left: 0;
+            width: 100%;
+        }
+        .content {
+            display: flex;
+            flex-direction: column; /* Default direction for mobile */
+            flex-wrap: wrap;
+        }
+        .symbol-add-container {
+            width: 100%;
+            margin-right: 0;
+        }
+        .plot-container {
+            width: 100%;
+        }
+        .options-container select {
+            width: 100%;
+        }
+        /* Tablet screens (768px and up) */
         @media (min-width: 768px) {
             .sidebar {
                 width: 15%;
@@ -249,20 +281,44 @@
                 width: 25%;
             }
         }
+        /* Desktop screens (992px and up) */
+        @media (min-width: 992px) {
+            .symbol-add-container {
+                width: 20%; /* Adjust width for larger screens */
+            }
+            .plot-container {
+                width: 80%; /* Adjust width for larger screens */
+            }
+            .options-container select {
+                width: 20%; /* Adjust width for larger screens */
+            }
+        }
+        /* Large desktop screens (1200px and up) */
+        @media (min-width: 1200px) {
+            .symbol-add-container {
+                width: 20%; /* Adjust for even larger screens */
+            }
+            .plot-container {
+                width: 80%; /* Adjust for even larger screens */
+            }
+            .options-container select {
+                width: 20%; /* Adjust for even larger screens */
+            }
+        }
     </style>
 </head>
 <body>
     <div class="sidebar">
         <h2>Menu</h2>
-        <a href="#" onclick="loadPage('my_profile')">My Profile</a>
-        <a href="#" onclick="loadPage('forecaster')">Forecaster</a>
-        <a href="#" onclick="loadPage('about_models')">About Models</a>
+        <a href="/my_profile">My Profile</a>
+        <a href="/forecaster">Forecaster</a>
+        <a href="/about_models">About Models</a>
         <a href="/logout" class="logout">Log Out</a>
     </div>
     <div class="main-content">
         <div class="content">
             <div class="symbol-add-container">
-                <h3>Symbols</h3>
+                <h3>Portfolio</h3>
                 <div class="symbol-input-container">
                     <div class="symbol-input">
                         <input type="text" id="symbol-name" placeholder="Enter symbol">
