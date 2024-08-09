@@ -15,7 +15,7 @@ The **backend.ipynb** notebook serves as the core of the project's backend, incl
 
 - **Flask App**: A web application framework to handle requests from the frontend.
 - **SQLAlchemy**: An ORM (Object-Relational Mapping) tool for interacting with the database, ensuring seamless data management.
-- **Model Section**: This part of the notebook is dedicated to developing and testing financial models. These models are used to perform various analyses and take actions as requested by the frontend of the web app.
+- **Model Section**: This part of the notebook is dedicated to developing and testing financial models. These models are used to perform various analyses and take actions as requested by the frontend of the web app. Currently, only AR model is implemented to be able to test the functionality of the rest of the application.
 
 ### 3. Templates Directory
 The **Templates** directory contains the HTML pages for the web application. Each file in this directory is an HTML document that defines the structure and content of the web pages, including any necessary scripts to enable interactive features.
