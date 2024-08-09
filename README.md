@@ -8,7 +8,7 @@ AiDea is a comprehensive project aimed at managing and analyzing your portfolio 
 ## Project Structure
 
 ### 1. Project Design
-The **Project Design** document outlines the initial blueprint of the project, providing a detailed roadmap for future development. This design will be iteratively refined as the project progresses.
+The **Project Design.pdf** document outlines the initial blueprint of the project, providing a detailed roadmap for future development. This design will be iteratively refined as the project progresses.
 
 ### 2. backend.ipynb
 The **backend.ipynb** notebook serves as the core of the project's backend, including:
