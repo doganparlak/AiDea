@@ -20,6 +20,17 @@ The **backend.ipynb** notebook serves as the core of the project's backend, incl
 ### 3. Templates Directory
 The **Templates** directory contains the HTML pages for the web application. Each file in this directory is an HTML document that defines the structure and content of the web pages, including any necessary scripts to enable interactive features.
 
+### 4. Instances
+The **Instances** directory contains the database, which includes the tables configured for the project. These tables are:
+
+- **User**
+- **TrainedModels**
+- **Symbols**
+- **Temporary Password**
+
+The number of tables can be extended, and the existing ones can be modified in future stages.
+
+
 ## Future Development
 
 In the subsequent stages of development, the backend.ipynb will be modularized to improve maintainability and scalability. This modularization will involve splitting the notebook into distinct components for:
