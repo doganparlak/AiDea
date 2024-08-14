@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: row;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar {
+            width: 15%;
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            box-sizing: border-box;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        .sidebar h2 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 0.5rem;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #575757;
+        }
+        .sidebar .logout {
+            text-align: center;
+            color: white;
+            padding: 0.5rem;
+            background-color: #d9534f;
+            text-decoration: none;
+            font-size: 1.2rem;
+            border-radius: 0.25rem;
+            display: block;
+            margin-top: 46rem; /* Adjusted margin */
+        }
+        .sidebar .logout:hover {
+            background-color: #c9302c;
+        }
+        .main-content {
+            margin-left: 15%;
+            padding: 2rem;
+            box-sizing: border-box;
+            width: 85%;
+        }
+        .profile-section {
+            margin-bottom: 2rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+        }
+        .profile-section h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 0.5rem;
+        }
+        .profile-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        .profile-info p {
+            margin: 0;
+        }
+        .profile-info .info-actions {
+            display: flex;
+            align-items: center;
+        }
+        .profile-info .info-actions button {
+            margin-left: 1rem;
+            font-size: 1rem; /* Increased font size */
+        }
+        .profile-info .info-actions .delete-button {
+            background-color: #dc3545;
+            color: white;
+            padding: 0.75rem 1.5rem; /* Adjusted padding */
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+        .profile-info .info-actions .delete-button:hover {
+            background-color: #c82333;
+        }
+        .account-type-buttons {
+            display: flex;
+            align-items: center;
+        }
+        .upgrade-button, .downgrade-button {
+            background-color: #28a745;
+            color: white;
+            padding: 0.75rem 1.5rem; /* Adjusted padding */
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 1rem; /* Increased font size */
+        }
+        .upgrade-button:hover, .downgrade-button:hover {
+            background-color: #218838;
+        }
+        .account-type {
+            text-transform: uppercase; /* Capitalize account type */
+        }
+        .comparison-section {
+            margin-top: 2rem;
+        }
+        .comparison-section h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+        .table-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        .table-container table {
+            width: 30%; /* Each table takes up 30% of the container width */
+            border-collapse: collapse;
+            margin-right: 1rem; /* Space between tables */
+        }
+        .table-container table:last-child {
+            margin-right: 0; /* Remove margin for the last table */
+        }
+        .comparison-table th, .comparison-table td {
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #ccc;
+        }
+        .comparison-table th {
+            background-color: #f2f2f2;
+        }
+        .check, .cross {
+            text-align: center;
+        }
+        .check::before {
+            content: "\2714"; /* Check mark */
+            color: green;
+        }
+        .cross::before {
+            content: "\2716"; /* Cross mark */
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <a href="/my_profile">My Profile</a>
+        <a href="/forecaster">Forecaster</a>
+        <a href="/about_models">About Models</a>
+        <a href="/logout" class="logout">Log Out</a>
+    </div>
+    <div class="main-content">
+        <div class="profile-section">
+            <h3>Account Information</h3>
+            <div class="profile-info">
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <div class="info-actions">
+                    <form action="/delete_account" method="POST">
+                        <button type="submit" class="delete-button">Delete Account</button>
+                    </form>
+                </div>
+            </div>
+            <div class="profile-info">
+                <p><strong>Account Type:</strong> <span class="account-type">{{ user.account_type }}</span></p>
+                <div class="info-actions account-type-buttons">
+                    {% if user.account_type == 'basic' %}
+                    <form action="/upgrade_to_premium" method="POST">
+                        <button type="submit" class="upgrade-button">Upgrade to Premium</button>
+                    </form>
+                    {% elif user.account_type == 'premium' %}
+                    <form action="/downgrade_to_basic" method="POST">
+                        <button type="submit" class="downgrade-button">Downgrade to Basic</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="comparison-section">
+            <h3>Account Type Comparison</h3>
+            <div class="table-container">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Models</th>
+                            <th>Basic</th>
+                            <th>Premium</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>AR</td>
+                            <td class="check"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>ARIMA</td>
+                            <td class="check"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>SARIMA</td>
+                            <td class="check"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>SARIMAX</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>VAR</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>VARMA</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>GARCH</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Historical Data Length</th>
+                            <th>Basic</th>
+                            <th>Premium</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1 Month</td>
+                            <td class="check"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>3 Months</td>
+                            <td class="check"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>6 Months</td>
+                            <td class="check"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>1 Year</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>2 Years</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>3 Years</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>4 Years</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>5 Years</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Number of Forecast Days</th>
+                            <th>Basic</th>
+                            <th>Premium</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1 Week</td>
+                            <td class="check"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>1 Month</td>
+                            <td class="check"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>2 Months</td>
+                            <td class="check"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>3 Months</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>4 Months</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>5 Months</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>6 Months</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>1 Year</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
