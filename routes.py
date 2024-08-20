@@ -47,6 +47,8 @@ def convert_to_days(input_length):
         days = 150
     elif input_length == '6_months':
         days = 180
+    elif input_length == '9_months':
+        days = 270
     elif input_length == '1_year':
         days = 360
     elif input_length == '2_years':
@@ -171,11 +173,12 @@ def init_routes(app):
                 temp_password = generate_temporary_password()
                 # Check if a temporary password entry already exists for the email
                 temp_password_entry = TemporaryPassword.query.filter_by(email=email).first()
-                if temp_password_entry:
+                if temp_password_entry: # If so, delete the previous one
                     db.session.delete(temp_password_entry)
                     db.session.commit()
 
-                temp_password_entry = TemporaryPassword(email=email, temp_password=temp_password)
+                #Replace it with the new one
+                temp_password_entry = TemporaryPassword(email=email, temp_password=temp_password) 
                 db.session.add(temp_password_entry)
                 db.session.commit()
                 
@@ -343,6 +346,7 @@ def init_routes(app):
             end_date = now.strftime("%Y-%m-%d")
 
             #Check if model already exists
+            TrainedModels.delete_all_models()
             model_obj = TrainedModels.load_trained_model(model_type=model_type, start_date=start_date, end_date=end_date, symbol=symbol)
             if not model_obj:  # if the model is already trained avoid re-training it.
                 data = fetch_data(symbol, start_date, end_date)

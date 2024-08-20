@@ -1,17 +1,21 @@
 from abc import ABC, abstractmethod
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.ar_model import AutoReg
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import r2_score
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings
+import logging
 from itertools import product
 import matplotlib.dates as mdates
 import matplotlib.patches as mpatches
 import base64
 import io
+import optuna
 
 # Suppress all warnings from statsmodels
 warnings.filterwarnings("ignore", category=Warning, module='statsmodels')
@@ -20,7 +24,10 @@ plt.switch_backend('Agg')
 def create_model(model_type, data, symbol_name):
     if model_type == 'AR':
         return AR_model(data, symbol_name)
-    
+    elif model_type == 'ARIMA':
+        return ARIMA_model(data, symbol_name)
+    elif model_type == 'SARIMA':
+        return SARIMA_model(data, symbol_name)
 class Model(ABC):
     def __init__(self, data, open, high, low, volume, symbol_name):
         self.data = data
@@ -68,8 +75,9 @@ class AR_model(Model):
         data = self.prepare_data(data)
         super().__init__(data = data['Close'], open = data['Open'], high = data['High'], low = data['Low'], volume = data['Volume'], symbol_name = symbol_name)
         self.trained_model = None
-        self.model_type = 'Auto Regressive'
+        self.model_type = 'Autoregressive'
         self.stationary = False
+        self.show_backtest = True
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -99,11 +107,13 @@ class AR_model(Model):
 
             # Perform grid search with cross-validation on the training set
             # Choose the best params based on R2 score
-            n_splits = 3
+            n_splits = 2
             tscv = TimeSeriesSplit(n_splits=n_splits)  # Time series cross-validation
             warnings.filterwarnings("ignore")
             for trend, lags in product(trends, lags_range):
                 r2_sum = 0
+                val_predictions = None
+                val_index = None
                 for train_index, val_index in tscv.split(data):
                     train_split, val_split = data.iloc[train_index], data.iloc[val_index]
                     try:
@@ -111,6 +121,10 @@ class AR_model(Model):
                         predictions = model.predict(start=len(train_split), end=len(train_split) + len(val_split) - 1)
                         r2 = r2_score(val_split, predictions)
                         r2_sum += r2
+                        # Store the predictions and index of the last validation split
+                        if val_index[0] == len(data) - len(val_split):
+                           val_predictions = predictions
+                           val_index = val_index
                     except Exception as e:
                         continue
                 
@@ -121,6 +135,8 @@ class AR_model(Model):
                 if avg_r2 > best_r2:
                     best_r2 = avg_r2
                     best_params = (trend, lags)
+                    self.last_val_predictions = val_predictions
+                    self.last_val_index = val_index
 
             best_trend, best_lags = best_params
         
@@ -142,10 +158,13 @@ class AR_model(Model):
        # Reverse log transformation if applied
         if not self.stationary:
             forecast_prices = np.exp(forecast_prices)
+            if self.last_val_predictions is not None and self.last_val_index is not None:
+                self.last_val_predictions = np.exp(self.last_val_predictions)
+           
 
         # Plot the data
         # Create date range for forecasted data
-        forecast_dates = pd.date_range(start=self.data.index[-2] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
+        forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
         # Create figure and axis
         fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
 
@@ -177,11 +196,17 @@ class AR_model(Model):
             ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
         # Plot the price data
         ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
-        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1, linestyle = 'dashdot')
+        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
         ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
         ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
-        ax1.legend(loc='upper left')
         ax1.grid(True, alpha = 0.3)
+
+        # Plot the last validation split predictions if available
+        if self.show_backtest:
+            if self.last_val_predictions is not None and self.last_val_index is not None:
+                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
+
+        ax1.legend(loc='upper left')
 
         # Plot the volume data
         volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
@@ -201,5 +226,366 @@ class AR_model(Model):
 
         return plot_data
     
+class ARIMA_model(Model):
 
+    def prepare_data(self, data):
+        data = data.dropna()
+        if not isinstance(data.index, pd.DatetimeIndex):
+            data.index = pd.to_datetime(data.index)
+        if not data.index.freq:
+            # Attempt to infer the frequency
+            inferred_freq = pd.infer_freq(data.index)
+            if inferred_freq:
+                data.index.freq = inferred_freq
+            else:
+                # Handle the case where frequency cannot be inferred
+                # For example, you might decide to use a default frequency or handle this as an exception
+                print("Unable to infer frequency for the datetime index.")
 
+        data.index.length = len(data)
+        return data
+    
+    def __init__(self, data, symbol_name):
+        data = self.prepare_data(data)
+        super().__init__(data = data['Close'], open = data['Open'], high = data['High'], low = data['Low'], volume = data['Volume'], symbol_name = symbol_name)
+        self.trained_model = None
+        self.model_type = 'Autoregressive Integrated Moving Average'
+        self.stationary = False
+        self.show_backtest = True
+    def check_stationarity(self, series, alpha=0.05):
+        series = series.dropna()
+        result = adfuller(series)
+        p_value = result[1]
+        self.stationary = p_value < alpha
+        return self.stationary 
+
+    def log_transform(self, series):
+        return np.log(series).dropna()
+    
+    def train(self):
+            # Check stationarity and apply log transformation if needed
+            data = self.data
+            if not self.check_stationarity(self.data):
+                print("Series is not stationary. Applying log transformation...")
+                data = self.log_transform(self.data)
+                    
+            # Define parameter grid for tuning
+            p_values = range(0, 3)
+            d_values = range(0, 2)
+            q_values = range(0, 3)
+            trends = ['c', 't', 'ct', [0, 0, 1, 0]]
+            
+            best_r2 = -float('inf') 
+            best_params = 'c', 0, 0, 0
+            self.last_val_predictions = None  # To store the last validation split predictions
+            self.last_val_index = None  # To store the index of the last validation split
+
+            # Perform grid search with cross-validation on the training set
+            # Choose the best params based on R2 score
+            n_splits = 2
+            tscv = TimeSeriesSplit(n_splits=n_splits)  # Time series cross-validation
+            warnings.filterwarnings("ignore")
+            for d in d_values:
+                for trend in trends:
+                    if d == 1:
+                        trends = ['t', [0,0,1,0]]
+                    elif d == 2:
+                        trends = [[0,0,1,0], [0,0,0,1]]
+                    elif d == 0:
+                        trends = ['c', 't', 'ct', [0, 0, 1, 0]]
+                    for p in p_values:
+                        for q in q_values:
+                            r2_sum = 0
+                            val_predictions = None
+                            val_index = None
+                            for train_index, val_index in tscv.split(data):
+                                train_split, val_split = data.iloc[train_index], data.iloc[val_index]
+                                try:
+                                    model = ARIMA(train_split, order=(p,d,q), trend = trend).fit()
+                                    predictions = model.predict(start=len(train_split), end=len(train_split) + len(val_split) - 1)
+                                    r2 = r2_score(val_split, predictions)
+                                    r2_sum += r2
+                                    # Store the predictions and index of the last validation split
+                                    if val_index[0] == len(data) - len(val_split):
+                                        val_predictions = predictions
+                                        val_index = val_index
+                                except Exception as e:
+                                    continue
+
+                            avg_r2 = r2_sum / n_splits
+                            if avg_r2 > best_r2:
+                                best_r2 = avg_r2
+                                best_params = (trend, p, d, q)
+                                self.last_val_predictions = val_predictions
+                                self.last_val_index = val_index
+
+            best_trend, best_p, best_d, best_q = best_params
+            print(f"Best R2 score: {best_r2:.4f}")
+            print(f"Best parameters: trend={best_trend}, p={best_p}, d={best_d}, q={best_q}")
+        
+            # Fit the best model on the entire dataset 
+            try:
+                self.trained_model = ARIMA(data, order=(best_p,best_d,best_q), trend=best_trend).fit()
+                print(f'Model training successful')
+            except Exception as e:
+                print(f'Model training failed with the error message: {e}')
+            
+    def forecast(self, forecast_days):
+        #Forecast next forecast_period days
+        start = len(self.data)
+        end = start + forecast_days - 1
+        forecast_prices = self.trained_model.predict(start=start, end=end)
+       # Reverse log transformation if applied
+        if not self.stationary:
+            forecast_prices = np.exp(forecast_prices)
+            if self.last_val_predictions is not None and self.last_val_index is not None:
+                self.last_val_predictions = np.exp(self.last_val_predictions)
+
+        # Plot the data
+        # Create date range for forecasted data
+        forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
+        # Create figure and axis
+        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
+
+        # Create candlestick data
+        candlestick_data = pd.DataFrame({
+            'Date': self.data.index,
+            'Open': self.open,
+            'Close': self.data,
+            'High': self.high,
+            'Low': self.low
+        })
+        # Plot the candlestick data with decreased transparency
+        for idx, row in candlestick_data.iterrows():
+            date_num = mdates.date2num(row['Date'])
+            if row['Close'] >= row['Open']:
+                color = 'green'
+                lower = row['Open']
+                height = row['Close'] - row['Open']
+            else:
+                color = 'red'
+                lower = row['Close']
+                height = row['Open'] - row['Close']
+            
+            # Draw high and low lines (wicks) outside the rectangle
+            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
+            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
+            
+            # Draw the rectangle (candlestick body)
+            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
+
+        # Plot the price data
+        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
+        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
+        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
+        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
+        ax1.grid(True, alpha = 0.3)
+
+        # Plot the last validation split predictions if available
+        if self.show_backtest:
+            if self.last_val_predictions is not None and self.last_val_index is not None:
+                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
+
+        ax1.legend(loc='upper left')
+        # Plot the volume data
+        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
+        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
+        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
+        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
+        ax2.grid(True, alpha = 0.3)
+        
+        # Save plot to a bytes buffer
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plot_data = base64.b64encode(buf.read()).decode('utf-8')
+        buf.close()
+        #plt.show()
+        plt.close(fig)  # Close the plot to free up resources
+
+        return plot_data
+    
+class SARIMA_model(Model):
+    def prepare_data(self, data):
+        data = data.dropna()
+        if not isinstance(data.index, pd.DatetimeIndex):
+            data.index = pd.to_datetime(data.index)
+        if not data.index.freq:
+            # Attempt to infer the frequency
+            inferred_freq = pd.infer_freq(data.index)
+            if inferred_freq:
+                data.index.freq = inferred_freq
+            else:
+                # Handle the case where frequency cannot be inferred
+                # For example, you might decide to use a default frequency or handle this as an exception
+                print("Unable to infer frequency for the datetime index.")
+
+        data.index.length = len(data)
+        return data
+    
+    def __init__(self, data, symbol_name):
+        data = self.prepare_data(data)
+        super().__init__(data = data['Close'], open = data['Open'], high = data['High'], low = data['Low'], volume = data['Volume'], symbol_name = symbol_name)
+        self.trained_model = None
+        self.model_type = 'Seasonal Autoregressive Integrated Moving Average'
+        self.stationary = False
+        self.show_backtest = True
+
+    def check_stationarity(self, series, alpha=0.05):
+        series = series.dropna()
+        result = adfuller(series)
+        p_value = result[1]
+        self.stationary = p_value < alpha
+        return self.stationary 
+
+    def log_transform(self, series):
+        return np.log(series).dropna()
+    
+    def objective(self, trial):
+        p = trial.suggest_int('p', 0, 3)
+        d = trial.suggest_int('d', 0, 2)
+        q = trial.suggest_int('q', 0, 3)
+        P = trial.suggest_int('P', 0, 2)
+        D = trial.suggest_int('D', 0, 1)
+        Q = trial.suggest_int('Q', 0, 2)
+        s = trial.suggest_categorical('s', [7, 12, 30, 52])  # Example seasonal periods
+        trend = trial.suggest_categorical('trend', ['c', 't', 'ct'])
+
+        r2_sum = 0
+        n_splits = 2
+        best_val_predictions = None
+        best_val_index = None
+        tscv = TimeSeriesSplit(n_splits=n_splits)
+
+        warnings.filterwarnings("ignore")
+        logging.getLogger('statsmodels').setLevel(logging.ERROR)
+
+        for train_index, val_index in tscv.split(self.data):
+            train_split, val_split = self.data.iloc[train_index], self.data.iloc[val_index]
+            try:
+                model = SARIMAX(train_split, order=(p, d, q), seasonal_order=(P, D, Q, s), trend=trend).fit(disp = False)
+                predictions = model.predict(start=len(train_split), end=len(train_split) + len(val_split) - 1)
+                r2 = r2_score(val_split, predictions)
+                r2_sum += r2
+                # Store the predictions and index for the last validation split
+                if len(val_index) > 0 and val_index[0] == len(self.data) - len(val_split):
+                    best_val_predictions = predictions
+                    best_val_index = val_index
+            except Exception as e:
+                return float('-inf')  # Return a very low value if an error occurs
+
+        avg_r2 = r2_sum / n_splits
+        # Store the best predictions and index within the trial object for later retrieval
+        trial.set_user_attr("best_val_predictions", best_val_predictions)
+        trial.set_user_attr("best_val_index", best_val_index)
+        return avg_r2
+    
+    def train(self):
+            # Check stationarity and apply log transformation if needed
+            if not self.check_stationarity(self.data):
+                print("Series is not stationary. Applying log transformation...")
+                self.data = self.log_transform(self.data)
+                    
+            # Create an Optuna study
+            optuna.logging.set_verbosity(optuna.logging.WARNING)
+            study = optuna.create_study(direction='maximize')
+            study.optimize(self.objective, n_trials=30, show_progress_bar=False)  # Number of trials can be adjusted
+
+            best_params = study.best_params
+            best_r2 = study.best_value  # Access custom attributes returned from objective function
+
+            # Retrieve the best trial
+            best_trial = study.best_trial
+
+            # Store the best validation predictions and index
+            self.last_val_predictions = best_trial.user_attrs["best_val_predictions"]
+            self.last_val_index = best_trial.user_attrs["best_val_index"]
+
+            
+            print(f"Best R2 score: {best_r2:.4f}")
+            print(f"Best parameters: {best_params}")
+
+            # Fit the best model on the entire dataset
+            try:
+                self.trained_model = SARIMAX(self.data, order=(best_params['p'], best_params['d'], best_params['q']),
+                                            seasonal_order=(best_params['P'], best_params['D'], best_params['Q'], best_params['s']),
+                                            trend=best_params['trend']).fit(disp = False)
+                print(f'Model training successful')
+            except Exception as e:
+                print(f'Model training failed with the error message: {e}')
+            
+    def forecast(self, forecast_days):
+        #Forecast next forecast_period days
+        start = len(self.data)
+        end = start + forecast_days - 1
+        forecast_prices = self.trained_model.predict(start=start, end=end)
+    # Reverse log transformation if applied
+        if not self.stationary:
+            self.data = np.exp(self.data)
+            forecast_prices = np.exp(forecast_prices)
+            if self.last_val_predictions is not None and self.last_val_index is not None:
+                self.last_val_predictions = np.exp(self.last_val_predictions)
+
+        # Plot the data
+        # Create date range for forecasted data
+        forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
+        # Create figure and axis
+        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
+
+        # Create candlestick data
+        candlestick_data = pd.DataFrame({
+            'Date': self.data.index,
+            'Open': self.open,
+            'Close': self.data,
+            'High': self.high,
+            'Low': self.low
+        })
+        # Plot the candlestick data with decreased transparency
+        for idx, row in candlestick_data.iterrows():
+            date_num = mdates.date2num(row['Date'])
+            if row['Close'] >= row['Open']:
+                color = 'green'
+                lower = row['Open']
+                height = row['Close'] - row['Open']
+            else:
+                color = 'red'
+                lower = row['Close']
+                height = row['Open'] - row['Close']
+            
+            # Draw high and low lines (wicks) outside the rectangle
+            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
+            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
+            
+            # Draw the rectangle (candlestick body)
+            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
+        
+        # Plot the price data
+        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
+        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
+        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
+        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
+        ax1.grid(True, alpha = 0.3)
+
+        # Plot the last validation split predictions if available
+        if self.show_backtest:
+            if self.last_val_predictions is not None and self.last_val_index is not None:
+                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
+
+        ax1.legend(loc='upper left')
+        # Plot the volume data
+        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
+        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
+        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
+        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
+        ax2.grid(True, alpha = 0.3)
+        
+        # Save plot to a bytes buffer
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plot_data = base64.b64encode(buf.read()).decode('utf-8')
+        buf.close()
+        #plt.show()
+        plt.close(fig)  # Close the plot to free up resources
+
+        return plot_data

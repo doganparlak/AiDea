@@ -14,6 +14,17 @@ class User(db.Model):
     def __repr__(self):
         return f'<User: {self.email} - Account Type: {self.account_type}>'
     
+    @classmethod
+    def delete_all_users():
+        try:
+            # Delete all entries from the Users table
+            Symbol.query.delete()
+            db.session.commit()
+            print("All users are deleted successfully.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error occurred: {str(e)}")
+    
 
 class Symbol(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -22,6 +33,17 @@ class Symbol(db.Model):
 
     def __repr__(self):
         return f'<Symbol: {self.name}>'
+    
+    @classmethod
+    def delete_all_symbols():
+        try:
+            # Delete all entries from the Symbols table
+            Symbol.query.delete()
+            db.session.commit()
+            print("All symbols are deleted successfully.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error occurred: {str(e)}")
     
 
 class TrainedModels(db.Model):
@@ -55,7 +77,30 @@ class TrainedModels(db.Model):
             return pickle.loads(model_entry.model_obj)
         else:
             return None
+    
+    @classmethod
+    def delete_all_models(self):
+        try:
+            # Delete all entries from the TrainedModels table
+            TrainedModels.query.delete()
+            db.session.commit()
+            print("All models are deleted successfully.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error occurred: {str(e)}")
+
 
 class TemporaryPassword(db.Model):
     email = db.Column(db.String(120), primary_key=True, nullable=False)
     temp_password = db.Column(db.String(255), nullable=False)
+
+    @classmethod
+    def delete_all_temporary_passwords():
+        try:
+            # Delete all entries from the TemporaryPassword table
+            TemporaryPassword.query.delete()
+            db.session.commit()
+            print("All temporary passwords are deleted successfully.")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error occurred: {str(e)}")
