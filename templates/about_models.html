@@ -94,11 +94,22 @@
     <div class="main-content">
         <div class="about-models-container">
             <div class="model-section">
-                <h3>AR (AutoRegressive) Model</h3>
-                <p>The AR model predicts future values based on a linear function of previous values in the time series. It assumes that the current value of the series can be explained by a linear combination of its past values. This model is useful for time series data that exhibit autocorrelation.</p>
+                <h3 style="color: #c9302c;">Common Approach</h3>
+                <p> The models consist of parameters that are meticulously calibrated to align with the historical price data provided. 
+                    For each model, the algorithm is designed to capture patterns within the historical data that yield the most accurate forecasts, as determined by backtesting results.
+                    The AR and ARIMA models utilize grid search for parameter tuning, while the Tree-Structured Parzen Estimator, a form of Bayesian optimization, is employed for HWES, ARCH, and SARIMA models. 
+                    Time series splitting is implemented to facilitate backtesting and optimize hyperparameters. Stationarity is assessed using the Augmented Dickey-Fuller (ADF) test, and if necessary, log transformation is applied to stabilize variance.
+                    Mean Squared Error (MSE) is selected as the loss function, guiding the process of parameter tuning.
+                </p>
             </div>
             <div class="model-section">
-                <h3>ARIMA (AutoRegressive Integrated Moving Average) Model</h3>
+                <h3>AR (Autoregressive) Model</h3>
+                <p>The AR model predicts future values based on a linear function of previous values in the time series. It assumes that the current value of the series can be explained by a linear combination of its past values. This model is useful for time series data that exhibit autocorrelation.
+                   Tuned parameters of the model are <span style="color: #c9302c;">trend</span> and <span style="color: #c9302c;">lags</span>.
+                </p>
+            </div>
+            <div class="model-section">
+                <h3>ARIMA (Autoregressive Integrated Moving Average) Model</h3>
                 <p>The ARIMA model combines the AR model with differencing (to make the time series stationary) and a moving average component. It is used for time series data that show trends and seasonality. ARIMA models are suitable for series where the past values have a linear relationship with future values and the series exhibits non-stationarity.</p>
             </div>
             <div class="model-section">
@@ -106,15 +117,15 @@
                 <p>The Holt-Winters Exponential Smoothing method is used for forecasting time series data that exhibits both trend and seasonality. It extends exponential smoothing by adding components for both trend and seasonal variations, making it effective for data with seasonal patterns.</p>
             </div>
             <div class="model-section">
-                <h3>GARCH (Generalized AutoRegressive Conditional Heteroskedasticity) Model</h3>
-                <p>The GARCH model is designed for time series with changing volatility over time, such as financial data. It models the volatility (variance) of the series and is useful for forecasting future volatility based on past data, making it valuable in risk management and financial forecasting.</p>
+                <h3>ARCH (Autoregressive Conditional Heteroskedasticity) Model</h3>
+                <p>The ARCH model is designed for time series with changing volatility over time, such as financial data. It models the volatility (variance) of the series and is useful for forecasting future volatility based on past data, making it valuable in risk management and financial forecasting.</p>
             </div>
             <div class="model-section">
                 <h3>UCM (Unobserved Components Model) Model</h3>
                 <p>The Unobserved Components Model (UCM) is a versatile model that decomposes a time series into unobserved components such as trend, seasonal, and cyclical patterns. It is effective in capturing underlying structures in complex time series data, making it suitable for a variety of forecasting tasks.</p>
             </div>
             <div class="model-section">
-                <h3>SARIMA (Seasonal AutoRegressive Integrated Moving Average) Model</h3>
+                <h3>SARIMA (Seasonal Autoregressive Integrated Moving Average) Model</h3>
                 <p>The SARIMA model extends ARIMA by incorporating seasonal effects into the forecasting process. It includes seasonal differencing and seasonal autoregressive and moving average components. SARIMA is ideal for time series data that exhibit clear seasonal patterns.</p>
             </div>
             

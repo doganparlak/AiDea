@@ -3,8 +3,10 @@ from statsmodels.tsa.stattools import adfuller
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+from arch import arch_model
 from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import r2_score
+from sklearn.metrics import r2_score, mean_squared_error
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,6 +30,10 @@ def create_model(model_type, data, symbol_name):
         return ARIMA_model(data, symbol_name)
     elif model_type == 'SARIMA':
         return SARIMA_model(data, symbol_name)
+    elif model_type == 'HWES':
+        return HWES_model(data, symbol_name)
+    elif model_type == 'ARCH':
+        return ARCH_model(data, symbol_name)
 class Model(ABC):
     def __init__(self, data, open, high, low, volume, symbol_name):
         self.data = data
@@ -102,16 +108,18 @@ class AR_model(Model):
             max_lag = int(np.sqrt(len(data))) if len(data) >= 20 else len(data) // 2  # Ensure a practical upper bound for small datasets
             lags_range = range(min_lag, max_lag + 1) 
 
-            best_r2 = -float('inf') 
+            best_mse = float('inf')
             best_params = 'n', 1
+            self.last_val_predictions = None  # To store the last validation split predictions
+            self.last_val_index = None  # To store the index of the last validation split
 
             # Perform grid search with cross-validation on the training set
-            # Choose the best params based on R2 score
+            # Choose the best params based on MSE score
             n_splits = 2
             tscv = TimeSeriesSplit(n_splits=n_splits)  # Time series cross-validation
             warnings.filterwarnings("ignore")
             for trend, lags in product(trends, lags_range):
-                r2_sum = 0
+                mse_sum = 0
                 val_predictions = None
                 val_index = None
                 for train_index, val_index in tscv.split(data):
@@ -119,8 +127,8 @@ class AR_model(Model):
                     try:
                         model = AutoReg(train_split.values, lags=lags, trend=trend).fit()
                         predictions = model.predict(start=len(train_split), end=len(train_split) + len(val_split) - 1)
-                        r2 = r2_score(val_split, predictions)
-                        r2_sum += r2
+                        mse = mean_squared_error(val_split, predictions)
+                        mse_sum += mse
                         # Store the predictions and index of the last validation split
                         if val_index[0] == len(data) - len(val_split):
                            val_predictions = predictions
@@ -128,19 +136,19 @@ class AR_model(Model):
                     except Exception as e:
                         continue
                 
-                # Average R2 score across folds
-                avg_r2 = r2_sum / n_splits
+                # Average mse score across folds
+                avg_mse = mse_sum / n_splits
                 
-                # Update best parameters if better R2 found
-                if avg_r2 > best_r2:
-                    best_r2 = avg_r2
+                # Update best parameters if better mse found
+                if avg_mse < best_mse:
+                    best_mse = avg_mse
                     best_params = (trend, lags)
                     self.last_val_predictions = val_predictions
                     self.last_val_index = val_index
 
             best_trend, best_lags = best_params
         
-            print(f"Best R2 score: {best_r2:.4f}")
+            print(f"Best MSE score: {best_mse:.4f}")
             print(f"Best parameters: trend={best_trend}, lags={best_lags}")
         
             # Fit the best model on the entire dataset 
@@ -159,8 +167,7 @@ class AR_model(Model):
         if not self.stationary:
             forecast_prices = np.exp(forecast_prices)
             if self.last_val_predictions is not None and self.last_val_index is not None:
-                self.last_val_predictions = np.exp(self.last_val_predictions)
-           
+               self.last_val_predictions = np.exp(self.last_val_predictions)
 
         # Plot the data
         # Create date range for forecasted data
@@ -199,15 +206,13 @@ class AR_model(Model):
         ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
         ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
         ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
+       
         ax1.grid(True, alpha = 0.3)
-
         # Plot the last validation split predictions if available
         if self.show_backtest:
             if self.last_val_predictions is not None and self.last_val_index is not None:
                 ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
-
         ax1.legend(loc='upper left')
-
         # Plot the volume data
         volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
         ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
@@ -273,29 +278,29 @@ class ARIMA_model(Model):
             p_values = range(0, 3)
             d_values = range(0, 2)
             q_values = range(0, 3)
-            trends = ['c', 't', 'ct', [0, 0, 1, 0]]
+            trends = ['c', 't', 'ct', [0, 0, 1, 0], [0, 0, 0, 1]]
             
-            best_r2 = -float('inf') 
-            best_params = 'c', 0, 0, 0
+            best_mse = float('inf') 
+            best_params = 't', 0, 0, 0
             self.last_val_predictions = None  # To store the last validation split predictions
             self.last_val_index = None  # To store the index of the last validation split
 
             # Perform grid search with cross-validation on the training set
-            # Choose the best params based on R2 score
+            # Choose the best params based on MSE score
             n_splits = 2
             tscv = TimeSeriesSplit(n_splits=n_splits)  # Time series cross-validation
             warnings.filterwarnings("ignore")
             for d in d_values:
+                if d == 1:
+                    trends = ['t', [0,0,1,0], [0,0,0,1]]
+                elif d == 2:
+                    trends = [[0,0,1,0], [0,0,0,1]]
+                elif d == 0:
+                    trends = ['c', 't', 'ct', [0, 0, 1, 0], [0, 0, 0, 1]]
                 for trend in trends:
-                    if d == 1:
-                        trends = ['t', [0,0,1,0]]
-                    elif d == 2:
-                        trends = [[0,0,1,0], [0,0,0,1]]
-                    elif d == 0:
-                        trends = ['c', 't', 'ct', [0, 0, 1, 0]]
-                    for p in p_values:
+                    for p in p_values:   
                         for q in q_values:
-                            r2_sum = 0
+                            mse_sum = 0
                             val_predictions = None
                             val_index = None
                             for train_index, val_index in tscv.split(data):
@@ -303,8 +308,8 @@ class ARIMA_model(Model):
                                 try:
                                     model = ARIMA(train_split, order=(p,d,q), trend = trend).fit()
                                     predictions = model.predict(start=len(train_split), end=len(train_split) + len(val_split) - 1)
-                                    r2 = r2_score(val_split, predictions)
-                                    r2_sum += r2
+                                    mse = mean_squared_error(val_split, predictions)
+                                    mse_sum += mse
                                     # Store the predictions and index of the last validation split
                                     if val_index[0] == len(data) - len(val_split):
                                         val_predictions = predictions
@@ -312,15 +317,15 @@ class ARIMA_model(Model):
                                 except Exception as e:
                                     continue
 
-                            avg_r2 = r2_sum / n_splits
-                            if avg_r2 > best_r2:
-                                best_r2 = avg_r2
+                            avg_mse = mse_sum / n_splits
+                            if avg_mse < best_mse:
+                                best_mse = avg_mse
                                 best_params = (trend, p, d, q)
                                 self.last_val_predictions = val_predictions
                                 self.last_val_index = val_index
 
             best_trend, best_p, best_d, best_q = best_params
-            print(f"Best R2 score: {best_r2:.4f}")
+            print(f"Best MSE score: {best_mse:.4f}")
             print(f"Best parameters: trend={best_trend}, p={best_p}, d={best_d}, q={best_q}")
         
             # Fit the best model on the entire dataset 
@@ -406,6 +411,7 @@ class ARIMA_model(Model):
         return plot_data
     
 class SARIMA_model(Model):
+
     def prepare_data(self, data):
         data = data.dropna()
         if not isinstance(data.index, pd.DatetimeIndex):
@@ -451,34 +457,38 @@ class SARIMA_model(Model):
         s = trial.suggest_categorical('s', [7, 12, 30, 52])  # Example seasonal periods
         trend = trial.suggest_categorical('trend', ['c', 't', 'ct'])
 
-        r2_sum = 0
+        mse_sum = 0
         n_splits = 2
         best_val_predictions = None
         best_val_index = None
         tscv = TimeSeriesSplit(n_splits=n_splits)
+        # Retrieve the current best_mse from user attributes
+        best_mse = trial.user_attrs.get('best_mse', float('inf'))
 
         warnings.filterwarnings("ignore")
-        logging.getLogger('statsmodels').setLevel(logging.ERROR)
-
         for train_index, val_index in tscv.split(self.data):
             train_split, val_split = self.data.iloc[train_index], self.data.iloc[val_index]
             try:
                 model = SARIMAX(train_split, order=(p, d, q), seasonal_order=(P, D, Q, s), trend=trend).fit(disp = False)
                 predictions = model.predict(start=len(train_split), end=len(train_split) + len(val_split) - 1)
-                r2 = r2_score(val_split, predictions)
-                r2_sum += r2
+                mse = mean_squared_error(val_split, predictions)
+                mse_sum += mse
                 # Store the predictions and index for the last validation split
                 if len(val_index) > 0 and val_index[0] == len(self.data) - len(val_split):
                     best_val_predictions = predictions
                     best_val_index = val_index
             except Exception as e:
-                return float('-inf')  # Return a very low value if an error occurs
+                print(e)
+                return float('inf')  # Return a very low value if an error occurs
 
-        avg_r2 = r2_sum / n_splits
-        # Store the best predictions and index within the trial object for later retrieval
-        trial.set_user_attr("best_val_predictions", best_val_predictions)
-        trial.set_user_attr("best_val_index", best_val_index)
-        return avg_r2
+        avg_mse = mse_sum / n_splits
+        if avg_mse<best_mse:
+            # Store the best predictions and index within the trial object for later retrieval
+            trial.set_user_attr("best_mse", avg_mse)
+            trial.set_user_attr("best_val_predictions", best_val_predictions)
+            trial.set_user_attr("best_val_index", best_val_index)
+
+        return avg_mse
     
     def train(self):
             # Check stationarity and apply log transformation if needed
@@ -486,13 +496,20 @@ class SARIMA_model(Model):
                 print("Series is not stationary. Applying log transformation...")
                 self.data = self.log_transform(self.data)
                     
-            # Create an Optuna study
-            optuna.logging.set_verbosity(optuna.logging.WARNING)
-            study = optuna.create_study(direction='maximize')
-            study.optimize(self.objective, n_trials=30, show_progress_bar=False)  # Number of trials can be adjusted
+             # Create an Optuna study
+            study = optuna.create_study(direction='minimize')
+            # Define an initial best_mse as infinity
+            initial_best_mse = float('inf')
+            # Define the objective function with an initial best_mse
+            def objective_with_initial_best_mse(trial):
+                trial.set_user_attr("best_mse", initial_best_mse)
+                return self.objective(trial)
+
+            study.optimize(objective_with_initial_best_mse, n_trials=30)  # Number of trials can be adjusted
+
 
             best_params = study.best_params
-            best_r2 = study.best_value  # Access custom attributes returned from objective function
+            best_mse = study.best_value  # Access custom attributes returned from objective function
 
             # Retrieve the best trial
             best_trial = study.best_trial
@@ -502,7 +519,7 @@ class SARIMA_model(Model):
             self.last_val_index = best_trial.user_attrs["best_val_index"]
 
             
-            print(f"Best R2 score: {best_r2:.4f}")
+            print(f"Best MSE score: {best_mse:.4f}")
             print(f"Best parameters: {best_params}")
 
             # Fit the best model on the entire dataset
@@ -519,7 +536,408 @@ class SARIMA_model(Model):
         start = len(self.data)
         end = start + forecast_days - 1
         forecast_prices = self.trained_model.predict(start=start, end=end)
-    # Reverse log transformation if applied
+       # Reverse log transformation if applied
+        if not self.stationary:
+            self.data = np.exp(self.data)
+            forecast_prices = np.exp(forecast_prices)
+            if self.last_val_predictions is not None and self.last_val_index is not None:
+                self.last_val_predictions = np.exp(self.last_val_predictions)
+
+        # Plot the data
+        # Create date range for forecasted data
+        forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
+        # Create figure and axis
+        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
+
+        # Create candlestick data
+        candlestick_data = pd.DataFrame({
+            'Date': self.data.index,
+            'Open': self.open,
+            'Close': self.data,
+            'High': self.high,
+            'Low': self.low
+        })
+        # Plot the candlestick data with decreased transparency
+        for idx, row in candlestick_data.iterrows():
+            date_num = mdates.date2num(row['Date'])
+            if row['Close'] >= row['Open']:
+                color = 'green'
+                lower = row['Open']
+                height = row['Close'] - row['Open']
+            else:
+                color = 'red'
+                lower = row['Close']
+                height = row['Open'] - row['Close']
+            
+            # Draw high and low lines (wicks) outside the rectangle
+            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
+            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
+            
+            # Draw the rectangle (candlestick body)
+            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
+        
+        # Plot the price data
+        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
+        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
+        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
+        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
+        ax1.grid(True, alpha = 0.3)
+
+        # Plot the last validation split predictions if available
+        if self.show_backtest:
+            if self.last_val_predictions is not None and self.last_val_index is not None:
+                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
+
+        ax1.legend(loc='upper left')
+        # Plot the volume data
+        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
+        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
+        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
+        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
+        ax2.grid(True, alpha = 0.3)
+        
+        # Save plot to a bytes buffer
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plot_data = base64.b64encode(buf.read()).decode('utf-8')
+        buf.close()
+        #plt.show()
+        plt.close(fig)  # Close the plot to free up resources
+
+        return plot_data
+
+class HWES_model(Model):
+    def prepare_data(self, data):
+        data = data.dropna()
+        if not isinstance(data.index, pd.DatetimeIndex):
+            data.index = pd.to_datetime(data.index)
+        if not data.index.freq:
+            # Attempt to infer the frequency
+            inferred_freq = pd.infer_freq(data.index)
+            if inferred_freq:
+                data.index.freq = inferred_freq
+            else:
+                # Handle the case where frequency cannot be inferred
+                # For example, you might decide to use a default frequency or handle this as an exception
+                print("Unable to infer frequency for the datetime index.")
+
+        data.index.length = len(data)
+        return data
+    
+    def __init__(self, data, symbol_name):
+        data = self.prepare_data(data)
+        super().__init__(data = data['Close'], open = data['Open'], high = data['High'], low = data['Low'], volume = data['Volume'], symbol_name = symbol_name)
+        self.trained_model = None
+        self.model_type = 'Holt-Winters Exponential Smoothing'
+        self.stationary = False
+        self.show_backtest = True
+
+    def check_stationarity(self, series, alpha=0.05):
+        series = series.dropna()
+        result = adfuller(series)
+        p_value = result[1]
+        self.stationary = p_value < alpha
+        return self.stationary 
+
+    def log_transform(self, series):
+        return np.log(series).dropna()
+    
+    def objective(self, trial):
+
+        # Define range of parameters
+        trend = trial.suggest_categorical('trend', ['add', 'mul', 'additive', 'multiplicative', None])
+        seasonal = trial.suggest_categorical('seasonal', ['add', 'mul', 'additive', 'multiplicative', None])
+        seasonal_periods = trial.suggest_categorical('seasonal_periods', [7, 12, 30, 52])  # Example seasonal periods
+        initialization_method = trial.suggest_categorical('initialization_method', [None, 'estimated', 'heuristic', 'legacy-heuristic'])
+        use_boxcox = trial.suggest_categorical('use_boxcox', [True, False])
+        mse_sum = 0
+        n_splits = 2
+        best_val_predictions = None
+        best_val_index = None
+        tscv = TimeSeriesSplit(n_splits=n_splits)
+        
+         # Retrieve the current best_mse from user attributes
+        best_mse = trial.user_attrs.get('best_mse', float('inf'))
+
+        warnings.filterwarnings("ignore")
+        for train_index, val_index in tscv.split(self.data):
+            train_split, val_split = self.data.iloc[train_index], self.data.iloc[val_index]
+            try:
+                model = ExponentialSmoothing(train_split, trend = trend, seasonal = seasonal, 
+                                             seasonal_periods = seasonal_periods,
+                                             initialization_method = initialization_method,
+                                             use_boxcox = use_boxcox).fit()
+                predictions = model.predict(start=len(train_split), end=len(train_split) + len(val_split) - 1)
+                mse = mean_squared_error(val_split, predictions)
+                mse_sum += mse
+                # Store the predictions and index for the last validation split
+                if len(val_index) > 0 and val_index[0] == len(self.data) - len(val_split):
+                    best_val_predictions = predictions
+                    best_val_index = val_index
+            except Exception as e:
+                print(e)
+                return float('inf')  # Return a very low value if an error occurs
+
+        avg_mse = mse_sum / n_splits
+        # Store the best predictions and index within the trial object for later retrieval
+        if avg_mse < best_mse:
+            trial.set_user_attr('best_mse', avg_mse)
+            trial.set_user_attr("best_val_predictions", best_val_predictions)
+            trial.set_user_attr("best_val_index", best_val_index)
+        return avg_mse
+    
+    def train(self):
+        # Check stationarity and apply log transformation if needed
+        if not self.check_stationarity(self.data):
+            print("Series is not stationary. Applying log transformation...")
+            self.data = self.log_transform(self.data)
+                
+        # Create an Optuna study
+        optuna.logging.set_verbosity(optuna.logging.WARNING)  # Suppress most of the output
+        study = optuna.create_study(direction='minimize')
+        # Define an initial best_mse as infinity
+        initial_best_mse = float('inf')
+        # Define the objective function with an initial best_mse
+        def objective_with_initial_best_mse(trial):
+            trial.set_user_attr("best_mse", initial_best_mse)
+            return self.objective(trial)
+
+        study.optimize(objective_with_initial_best_mse, n_trials=75)  # Number of trials can be adjusted
+
+        best_params = study.best_params
+        best_mse = study.best_value  # Access custom attributes returned from objective function
+
+        # Retrieve the best trial
+        best_trial = study.best_trial
+
+        # Store the best validation predictions and index
+        self.last_val_predictions = best_trial.user_attrs["best_val_predictions"]
+        self.last_val_index = best_trial.user_attrs["best_val_index"]
+
+        
+        print(f"Best MSE score: {best_mse:.4f}")
+        print(f"Best parameters: {best_params}")
+
+        # Fit the best model on the entire dataset
+        try:
+            self.trained_model = ExponentialSmoothing(self.data, trend = best_params['trend'], seasonal = best_params['seasonal'],
+                                                        seasonal_periods = best_params['seasonal_periods'], 
+                                                        initialization_method = best_params['initialization_method'],
+                                                        use_boxcox = best_params['use_boxcox']).fit()
+            print(f'Model training successful')
+        except Exception as e:
+            print(f'Model training failed with the error message: {e}')
+            
+    def forecast(self, forecast_days):
+        #Forecast next forecast_period days
+        start = len(self.data)
+        end = start + forecast_days - 1
+        forecast_prices = self.trained_model.predict(start=start, end=end)
+       # Reverse log transformation if applied
+        if not self.stationary:
+            self.data = np.exp(self.data)
+            forecast_prices = np.exp(forecast_prices)
+            if self.last_val_predictions is not None and self.last_val_index is not None:
+                self.last_val_predictions = np.exp(self.last_val_predictions)
+
+        # Plot the data
+        # Create date range for forecasted data
+        forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
+        # Create figure and axis
+        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
+
+        # Create candlestick data
+        candlestick_data = pd.DataFrame({
+            'Date': self.data.index,
+            'Open': self.open,
+            'Close': self.data,
+            'High': self.high,
+            'Low': self.low
+        })
+        # Plot the candlestick data with decreased transparency
+        for idx, row in candlestick_data.iterrows():
+            date_num = mdates.date2num(row['Date'])
+            if row['Close'] >= row['Open']:
+                color = 'green'
+                lower = row['Open']
+                height = row['Close'] - row['Open']
+            else:
+                color = 'red'
+                lower = row['Close']
+                height = row['Open'] - row['Close']
+            
+            # Draw high and low lines (wicks) outside the rectangle
+            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
+            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
+            
+            # Draw the rectangle (candlestick body)
+            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
+        
+        # Plot the price data
+        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
+        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
+        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
+        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
+        ax1.grid(True, alpha = 0.3)
+
+        # Plot the last validation split predictions if available
+        if self.show_backtest:
+            if self.last_val_predictions is not None and self.last_val_index is not None:
+                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
+
+        ax1.legend(loc='upper left')
+        # Plot the volume data
+        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
+        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
+        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
+        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
+        ax2.grid(True, alpha = 0.3)
+        
+        # Save plot to a bytes buffer
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plot_data = base64.b64encode(buf.read()).decode('utf-8')
+        buf.close()
+        #plt.show()
+        plt.close(fig)  # Close the plot to free up resources
+
+        return plot_data
+    
+class ARCH_model(Model):
+    def prepare_data(self, data):
+        data = data.dropna()
+        if not isinstance(data.index, pd.DatetimeIndex):
+            data.index = pd.to_datetime(data.index)
+        if not data.index.freq:
+            # Attempt to infer the frequency
+            inferred_freq = pd.infer_freq(data.index)
+            if inferred_freq:
+                data.index.freq = inferred_freq
+            else:
+                # Handle the case where frequency cannot be inferred
+                # For example, you might decide to use a default frequency or handle this as an exception
+                print("Unable to infer frequency for the datetime index.")
+
+        data.index.length = len(data)
+        return data
+    
+    def __init__(self, data, symbol_name):
+        data = self.prepare_data(data)
+        super().__init__(data = data['Close'], open = data['Open'], high = data['High'], low = data['Low'], volume = data['Volume'], symbol_name = symbol_name)
+        self.trained_model = None
+        self.model_type = 'Generalized AutoRegressive Conditional Heteroskedasticity'
+        self.stationary = False
+        self.show_backtest = True
+
+    def check_stationarity(self, series, alpha=0.05):
+        series = series.dropna()
+        result = adfuller(series)
+        p_value = result[1]
+        self.stationary = p_value < alpha
+        return self.stationary 
+
+    def log_transform(self, series):
+        return np.log(series).dropna()
+    
+    def objective(self, trial):
+
+        # Define range of parameters
+        rescale = trial.suggest_categorical('rescale', [True, False])
+        min_lag = 1
+        max_lag = int(np.sqrt(len(self.data))) if len(self.data) >= 20 else len(self.data) // 2  # Ensure a practical upper bound for small datasets
+        lags = trial.suggest_int('lags', min_lag, max_lag)
+        p = trial.suggest_int('p', 1, 5)
+        q = trial.suggest_int('q', 1, 5)
+        vol = trial.suggest_categorical('vol', ['GARCH', 'ARCH', 'EGARCH', 'FIGARCH', 
+                                                'APARCH', 'HARCH'])
+        mean = trial.suggest_categorical('mean', ['Zero', 'LS', 'AR', 
+                                                  'ARX', 'HAR', 'HARX'])
+        mse_sum = 0
+        n_splits = 2
+        best_val_predictions = None
+        best_val_index = None
+        tscv = TimeSeriesSplit(n_splits=n_splits)
+        warnings.filterwarnings("ignore")
+
+        # Retrieve the current best_mse from user attributes
+        best_mse = trial.user_attrs.get('best_mse', float('inf'))
+
+
+        for train_index, val_index in tscv.split(self.data):
+            train_split, val_split = self.data.iloc[train_index], self.data.iloc[val_index]
+            try:
+                model = arch_model(train_split, p = p, q = q, mean = mean, lags = lags, 
+                                   rescale = rescale, vol = vol).fit(disp = 'off')
+                predictions = model.forecast(horizon=len(val_split)).mean.values[-1, :]
+                mse = mean_squared_error(val_split, predictions)
+                mse_sum += mse
+                # Store the predictions and index for the last validation split
+                if len(val_index) > 0 and val_index[0] == len(self.data) - len(val_split):
+                    best_val_predictions = predictions
+                    best_val_index = val_index
+            except Exception as e:
+                print(e)
+                return float('inf')  # Return a very low value if an error occurs
+
+        avg_mse = mse_sum / n_splits
+        if avg_mse<best_mse:
+            # Store the best predictions and index within the trial object for later retrieval
+            trial.set_user_attr("best_mse", avg_mse)
+            trial.set_user_attr("best_val_predictions", best_val_predictions)
+            trial.set_user_attr("best_val_index", best_val_index)
+
+        return avg_mse
+    
+    def train(self):
+            # Check stationarity and apply log transformation if needed
+            if not self.check_stationarity(self.data):
+                print("Series is not stationary. Applying log transformation...")
+                self.data = self.log_transform(self.data)
+                    
+            # Create an Optuna study
+            optuna.logging.set_verbosity(optuna.logging.WARNING)  # Suppress most of the output
+            study = optuna.create_study(direction='minimize')
+
+            # Define an initial best_mse as infinity
+            initial_best_mse = float('inf')
+            # Define the objective function with an initial best_mse
+            def objective_with_initial_best_mse(trial):
+                trial.set_user_attr("best_mse", initial_best_mse)
+                return self.objective(trial)
+
+            study.optimize(objective_with_initial_best_mse, n_trials=75)  # Number of trials can be adjusted
+
+            best_params = study.best_params
+            best_mse = study.best_value  # Access custom attributes returned from objective function
+
+            # Retrieve the best trial
+            best_trial = study.best_trial
+
+            # Store the best validation predictions and index
+            self.last_val_predictions = best_trial.user_attrs["best_val_predictions"]
+            self.last_val_index = best_trial.user_attrs["best_val_index"]
+
+            
+            print(f"Best MSE score: {best_mse:.4f}")
+            print(f"Best parameters: {best_params}")
+
+            # Fit the best model on the entire dataset
+            try:
+                self.trained_model = arch_model(self.data, p = best_params['p'], q = best_params['q'], 
+                                                mean = best_params['mean'],lags =  best_params['lags'],
+                                                rescale =  best_params['rescale'], vol = best_params['vol']).fit(disp = 'off')
+                print(f'Model training successful')
+            except Exception as e:
+                print(f'Model training failed with the error message: {e}')
+            
+    def forecast(self, forecast_days):
+        #Forecast next forecast_period days
+        start = len(self.data)
+        end = start + forecast_days - 1
+        forecast_prices = self.trained_model.forecast(horizon=forecast_days).mean.values[-1, :]
+       # Reverse log transformation if applied
         if not self.stationary:
             self.data = np.exp(self.data)
             forecast_prices = np.exp(forecast_prices)
