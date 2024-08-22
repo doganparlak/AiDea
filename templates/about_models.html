@@ -105,28 +105,59 @@
             <div class="model-section">
                 <h3>AR (Autoregressive) Model</h3>
                 <p>The AR model predicts future values based on a linear function of previous values in the time series. It assumes that the current value of the series can be explained by a linear combination of its past values. This model is useful for time series data that exhibit autocorrelation.
-                   Tuned parameters of the model are <span style="color: #c9302c;">trend</span> and <span style="color: #c9302c;">lags</span>.
+                    The parameters tuned in this model include <span style="color: #c9302c;">trend</span>, and <span style="color: #c9302c;">lags</span>.
                 </p>
             </div>
             <div class="model-section">
                 <h3>ARIMA (Autoregressive Integrated Moving Average) Model</h3>
-                <p>The ARIMA model combines the AR model with differencing (to make the time series stationary) and a moving average component. It is used for time series data that show trends and seasonality. ARIMA models are suitable for series where the past values have a linear relationship with future values and the series exhibits non-stationarity.</p>
+                <p>The ARIMA model combines the AR model with differencing (to make the time series stationary) and a moving average component. 
+                    It is used for time series data that show trends and seasonality. ARIMA models are suitable for series where the past values have a linear relationship with future values and the series exhibits non-stationarity.
+                    The parameters tuned are <span style="color: #c9302c;">trend</span>, and order of the model for the autoregressive, differences, and moving average components 
+                    (<span style="color: #c9302c;">p</span>,<span style="color: #c9302c;">d</span>,<span style="color: #c9302c;">q</span>).
+                </p>
             </div>
             <div class="model-section">
                 <h3>HWES (Holt-Winters Exponential Smoothing) </h3>
-                <p>The Holt-Winters Exponential Smoothing method is used for forecasting time series data that exhibits both trend and seasonality. It extends exponential smoothing by adding components for both trend and seasonal variations, making it effective for data with seasonal patterns.</p>
+                <p>The Holt-Winters Exponential Smoothing method is used for forecasting time series data that exhibits both trend and seasonality. 
+                   It extends exponential smoothing by adding components for both trend and seasonal variations, making it effective for data with seasonal patterns.
+                   The parameters tuned include <span style="color: #c9302c;">trend</span>, the type of seasonal component <span style="color: #c9302c;">seasonal</span>, 
+                   the number of periods in a complete seasonal cycle <span style="color: #c9302c;">seasonal_periods</span>, method for initialize the recursions 
+                   <span style="color: #c9302c;">initialization_method</span>, and the application of Box-Cox transform <span style="color: #c9302c;">use_boxcox</span>.
+
+                </p>
             </div>
             <div class="model-section">
                 <h3>ARCH (Autoregressive Conditional Heteroskedasticity) Model</h3>
-                <p>The ARCH model is designed for time series with changing volatility over time, such as financial data. It models the volatility (variance) of the series and is useful for forecasting future volatility based on past data, making it valuable in risk management and financial forecasting.</p>
+                <p>The ARCH model is designed for time series with changing volatility over time, such as financial data. 
+                    It models the volatility (variance) of the series and is useful for forecasting future volatility based on past data, making it valuable in risk management and financial forecasting.
+                    The parameters tuned are <span style="color: #c9302c;">lags</span>, name of the volatility model <span style="color: #c9302c;">vol</span>, 
+                    name of the mean model <span style="color: #c9302c;">mean</span>, lag order of the symmetric <span style="color: #c9302c;">p</span>, and asymmetric innovations 
+                    <span style="color: #c9302c;">q</span>. 
+                </p>
             </div>
             <div class="model-section">
                 <h3>UCM (Unobserved Components Model) Model</h3>
-                <p>The UCM model is a versatile model that decomposes a time series into unobserved components such as trend, seasonal, and cyclical patterns. It is effective in capturing underlying structures in complex time series data, making it suitable for a variety of forecasting tasks.</p>
+                <p><p>The UCM (Unobserved Components Model) is an adaptable framework that decomposes a time series into latent components, including trend, seasonal, and cyclical patterns.
+                     Its effectiveness in capturing complex underlying structures makes it exceptionally suited for diverse forecasting tasks. 
+                     The tuned parameters encompass <span style="color: #c9302c;">trend</span>, the inclusion of the level component <span style="color: #c9302c;">level</span>, 
+                     the periodicity of the seasonal component <span style="color: #c9302c;">seasonal</span>, the application of the cycle component <span style="color: #c9302c;">cycle</span>,
+                     whether the cycle component is damped <span style="color: #c9302c;">damped cycle</span>, the incorporation of the irregular component <span style="color: #c9302c;">irregular</span>,
+                     and the order of the autoregressive component <span style="color: #c9302c;">autoregressive</span>.</p>
+
+                </p>
             </div>
             <div class="model-section">
                 <h3>SARIMA (Seasonal Autoregressive Integrated Moving Average) Model</h3>
-                <p>The SARIMA model extends ARIMA by incorporating seasonal effects into the forecasting process. It includes seasonal differencing and seasonal autoregressive and moving average components. SARIMA is ideal for time series data that exhibit clear seasonal patterns.</p>
+                <p>The SARIMA model extends ARIMA by incorporating seasonal effects into the forecasting process. 
+                    It includes seasonal differencing and seasonal autoregressive and moving average components. 
+                    SARIMA is ideal for time series data that exhibit clear seasonal patterns.
+                    The parameters tuned are <span style="color: #c9302c;">trend</span>, 
+                    order of the model for the autoregressive, differences, and moving average components 
+                    (<span style="color: #c9302c;">p</span>,<span style="color: #c9302c;">d</span>,<span style="color: #c9302c;">q</span>),
+                    order of the seasonal component of the model for the autoregressive, differences, moving average parameters, and periodicity
+                    (<span style="color: #c9302c;">P</span>,<span style="color: #c9302c;">D</span>,<span style="color: #c9302c;">Q</span>
+                    <span style="color: #c9302c;">s</span>).
+                </p>
             </div>
             
         </div>

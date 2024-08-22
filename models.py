@@ -774,7 +774,7 @@ class ARCH_model(Model):
             train_split, val_split = self.data.iloc[train_index], self.data.iloc[val_index]
             try:
                 model = arch_model(train_split, p = p, q = q, mean = mean, lags = lags, 
-                                   rescale = rescale, vol = vol).fit(disp = 'off')
+                                   rescale = rescale, vol = vol).fit(disp = 'off', options={'maxiter': 200})
                 predictions = model.forecast(horizon=len(val_split)).mean.values[-1, :]
                 mse = mean_squared_error(val_split, predictions)
                 mse_sum += mse
@@ -832,7 +832,7 @@ class ARCH_model(Model):
             try:
                 self.trained_model = arch_model(self.data, p = best_params['p'], q = best_params['q'], 
                                                 mean = best_params['mean'],lags =  best_params['lags'],
-                                                rescale =  best_params['rescale'], vol = best_params['vol']).fit(disp = 'off')
+                                                rescale =  best_params['rescale'], vol = best_params['vol']).fit(disp = 'off', options={'maxiter': 200})
                 print(f'Model training successful')
             except Exception as e:
                 print(f'Model training failed with the error message: {e}')
@@ -938,7 +938,7 @@ class UCM_model(Model):
         trend = trial.suggest_categorical('trend', [True, False])
         seasonal = trial.suggest_categorical('seasonal', [7, 12, 30, 52]) 
         cycle = trial.suggest_categorical('cycle', [True, False])  
-        damped_trend = trial.suggest_categorical('damped_trend', [True, False]) 
+        damped_cycle = trial.suggest_categorical('damped_cycle', [True, False]) 
         irregular = trial.suggest_categorical('irregular', [True, False])  
         autoregressive = trial.suggest_int('autoregressive', 1, 10)
 
@@ -956,7 +956,7 @@ class UCM_model(Model):
             train_split, val_split = self.data.iloc[train_index], self.data.iloc[val_index]
             try:
                 model = UnobservedComponents(train_split, level = level, trend = trend, seasonal = seasonal, cycle = cycle, 
-                                             damped_trend = damped_trend, irregular = irregular, autoregressive = autoregressive).fit(disp = False)
+                                             damped_cycle = damped_cycle, irregular = irregular, autoregressive = autoregressive).fit(disp = False)
                 predictions = model.get_forecast(steps=len(val_split)).predicted_mean
                 mse = mean_squared_error(val_split, predictions)
                 mse_sum += mse
@@ -1012,7 +1012,7 @@ class UCM_model(Model):
             # Fit the best model on the entire dataset
             try:
                 self.trained_model =  UnobservedComponents(self.data, level = best_params['level'], trend = best_params['trend'], seasonal = best_params['seasonal'], 
-                                                           cycle = best_params['cycle'], damped_trend = best_params['damped_trend'], irregular = best_params['irregular'],
+                                                           cycle = best_params['cycle'], damped_cycle = best_params['damped_cycle'], irregular = best_params['irregular'],
                                                            autoregressive = best_params['autoregressive']).fit(disp = False)
                 print(f'Model training successful')
             except Exception as e:
