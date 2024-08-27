@@ -110,9 +110,10 @@ def init_routes(app):
 
             if user and check_password_hash(user.password, password):
                 # Store user ID in session
-                session['user_id'] = user.id
+                session['user_id'] = user.id   # Store the id in the session
                 session['email'] = user.email  # Store the email in the session
-                return jsonify({'message': 'Login successful!', 'redirect': url_for('main')}), 200
+                session['account_type'] = user.account_type # Store the account type in the session
+                return jsonify({'message': 'Login successful!', 'redirect': url_for('main'), 'account_type': user.account_type}), 200
             else:
                 return jsonify({'message': 'Invalid credentials'}), 401
             
@@ -256,6 +257,16 @@ def init_routes(app):
             return jsonify({'redirect': '/request_email', 'message': 'No email found in session. Please request an email first.'})
 
         return render_template('reset_password.html')
+    
+    @app.route('/get_user_account_type')
+    def get_user_account_type():
+        user_id = session.get('user_id')
+        if user_id:
+            user = User.query.get(user_id)
+            if user:
+                return jsonify({'account_type': user.account_type})
+        return jsonify({'account_type': 'Unknown'}), 400
+
 
     @app.route('/forecaster', methods=['GET', 'POST']) # Forecaster Button 
     def main():
@@ -265,6 +276,9 @@ def init_routes(app):
     @app.route('/logout', methods=['GET', 'POST']) # Logout Button
     def logout():
         # Perform logout operations if needed
+        session.pop('user_id', None)  # Remove user ID from session
+        session.pop('email', None)  # Remove user ID from session
+        session.pop('account_type', None)  # Remove account type from session
         return redirect(url_for('login'))
 
     @app.route('/my_profile', methods=['GET'])
@@ -398,36 +412,32 @@ def init_routes(app):
     @app.route('/upgrade_to_premium', methods=['POST'])
     def upgrade_to_premium():
         if 'user_id' not in session:
-            #flash('You must be logged in to upgrade your account.', 'danger')
             return redirect(url_for('login'))
 
         user_id = session['user_id']
         user = User.query.get(user_id)  # Fetch user by ID
 
-        if user:
+        if user and user.account_type == 'basic':
             user.account_type = 'premium'
             db.session.commit()
-            #flash('You have been upgraded to a premium account.', 'success')
-            return redirect(url_for('my_profile'))
+            print('upgrade completed')
+            return '', 204  # Return no content
         else:
-            #flash('Account upgrade failed.', 'danger')
-            return redirect(url_for('my_profile'))
-        
+            return '', 400  # Bad request if upgrade fails
+
     @app.route('/downgrade_to_basic', methods=['POST'])
     def downgrade_to_basic():
         if 'user_id' not in session:
-            #flash('You must be logged in to downgrade your account.', 'danger')
             return redirect(url_for('login'))
 
         user_id = session['user_id']
-        user = User.query.get(user_id)
-        
+        user = User.query.get(user_id) # Fetch user by ID
+
         if user and user.account_type == 'premium':
             user.account_type = 'basic'
             db.session.commit()
-            #flash('You have been downgraded to a basic account.', 'success')
-            return redirect(url_for('my_profile'))
+            print('downgrade completed')
+            return '', 204  # Return no content
         else:
-            #flash('Account downgrade failed or already basic.', 'danger')
-            return redirect(url_for('my_profile'))
+            return '', 400  # Bad request if downgrade fails
     

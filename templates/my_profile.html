@@ -186,11 +186,11 @@
                 <p><strong>Account Type:</strong> <span class="account-type">{{ user.account_type }}</span></p>
                 <div class="info-actions account-type-buttons">
                     {% if user.account_type == 'basic' %}
-                    <form action="/upgrade_to_premium" method="POST">
+                    <form id="upgrade-form" action="/upgrade_to_premium" method="POST">
                         <button type="submit" class="upgrade-button">Upgrade to Premium</button>
                     </form>
                     {% elif user.account_type == 'premium' %}
-                    <form action="/downgrade_to_basic" method="POST">
+                    <form id="downgrade-form" action="/downgrade_to_basic" method="POST">
                         <button type="submit" class="downgrade-button">Downgrade to Basic</button>
                     </form>
                     {% endif %}
@@ -341,5 +341,60 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get forms if they exist
+            const upgradeForm = document.getElementById('upgrade-form');
+            const downgradeForm = document.getElementById('downgrade-form');
+    
+            // Check if the upgrade form exists before adding event listener
+            if (upgradeForm) {
+                upgradeForm.addEventListener('submit', function(event) {
+                    console.log('Upgrade form submitted'); // Debugging
+                    event.preventDefault();
+                    fetch('/upgrade_to_premium', {
+                        method: 'POST'
+                    }).then(response => {
+                        console.log('Upgrade response status:', response.status); // Debugging
+                        if (response.ok) {
+                            showMessageAndLogout('Your account type has been upgraded. Please log in again.');
+                        } else {
+                            throw new Error('Failed to upgrade');
+                        }
+                    }).catch(error => console.error('Error:', error));
+                });
+            }
+    
+            // Check if the downgrade form exists before adding event listener
+            if (downgradeForm) {
+                downgradeForm.addEventListener('submit', function(event) {
+                    console.log('Downgrade form submitted'); // Debugging
+                    event.preventDefault();
+                    fetch('/downgrade_to_basic', {
+                        method: 'POST'
+                    }).then(response => {
+                        console.log('Downgrade response status:', response.status); // Debugging
+                        if (response.ok) {
+                            showMessageAndLogout('Your account type has been downgraded. Please log in again.');
+                        } else {
+                            throw new Error('Failed to downgrade');
+                        }
+                    }).catch(error => console.error('Error:', error));
+                });
+            }
+    
+            function showMessageAndLogout(message) {
+                alert(message); // Show the message to the user
+    
+                // Perform the logout
+                fetch('/logout', { method: 'POST' })
+                    .then(() => {
+                        window.location.href = '/login';
+                    })
+                    .catch(error => console.error('Error logging out:', error));
+            }
+        });
+    </script>    
 </body>
 </html>

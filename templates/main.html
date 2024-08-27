@@ -96,7 +96,7 @@
             flex: 1;
             margin-right: 0.1rem;
             margin-left: 0.1rem;
-            max-width: 85%;
+            max-width: 100%;
             max-height: 100%;
             position: relative; /* NEW Ensure positioning context for the button */
         }
@@ -160,6 +160,7 @@
         }
         .symbol-list .symbol-text {
             flex: 1; /* Take up remaining space */
+            text-align: center; /* Center content vertically */
         }
         .symbol-list button {
             background-color: #dc3545;
@@ -293,6 +294,14 @@
             .options-container select {
                 width: 20%; /* Adjust width for larger screens */
             }
+            .symbol-input {
+                width: 50%
+            }
+            .symbol-input input {
+                font-size: 1.2rem;
+                width: 100%;
+                text-align: center;
+            }
         }
         /* Large desktop screens (1200px and up) */
         @media (min-width: 1200px) {
@@ -374,9 +383,69 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
+        document.addEventListener('DOMContentLoaded', function() {
             fetchSymbols();
+            updateOptionsBasedOnAccountType();
         });
+
+        function updateOptionsBasedOnAccountType() {
+            fetch('/get_user_account_type')
+                .then(response => response.json())
+                .then(data => {
+                    const accountType = data.account_type;
+                    const modelSelect = document.getElementById('model_type');
+                    const dataLengthSelect = document.getElementById('data_length');
+                    const forecastDaysSelect = document.getElementById('forecast_days');
+
+                    // Apply filters based on the account type
+                    filterOptions(accountType, modelSelect, dataLengthSelect, forecastDaysSelect);
+                    // Store the account type in sessionStorage for quick access
+                    // sessionStorage.setItem('account_type', accountType);
+                })
+                .catch(error => {
+                    console.error('Error fetching account type:', error);
+                    document.getElementById('account-type').textContent = 'Error loading account type';
+                });
+        }
+
+        function filterOptions(accountType, modelSelect, dataLengthSelect, forecastDaysSelect) {
+            if (accountType === 'basic') {
+                filterBasicOptions(modelSelect, dataLengthSelect, forecastDaysSelect);
+            }
+            else {
+            // Clear filters for premium accounts
+            clearFilters(modelSelect, dataLengthSelect, forecastDaysSelect);
+            }
+        }
+        function clearFilters(modelSelect, dataLengthSelect, forecastDaysSelect) {
+            // Re-enable all options
+            const options = modelSelect.querySelectorAll('option, dataLengthSelect option, forecastDaysSelect option');
+            options.forEach(option => option.disabled = false);
+        }
+        function filterBasicOptions(modelSelect, dataLengthSelect, forecastDaysSelect) {
+            const premiumModels = ['ARCH', 'UCM', 'SARIMA'];
+            const premiumDataLengths = ['2_years', '3_years', '4_years', '5_years'];
+            const premiumForecastDays = ['3_months', '4_months', '5_months', '6_months', '1_year'];
+
+            // Disable premium models
+            premiumModels.forEach(model => {
+                const option = modelSelect.querySelector(`option[value="${model}"]`);
+                if (option) option.disabled = true;
+            });
+
+            // Disable premium data lengths
+            premiumDataLengths.forEach(length => {
+                const option = dataLengthSelect.querySelector(`option[value="${length}"]`);
+                if (option) option.disabled = true;
+            });
+
+            // Disable premium forecast days
+            premiumForecastDays.forEach(days => {
+                const option = forecastDaysSelect.querySelector(`option[value="${days}"]`);
+                if (option) option.disabled = true;
+            });
+        }
+
         function loadPage(page) {
             const mainContent = document.querySelector('.main-content');
             
