@@ -116,6 +116,7 @@
             font-size: 0.8rem;
             cursor: pointer;
             width: auto;
+            height: 2.70rem;
             line-height: 1;
             display: flex;
             align-items: center;
@@ -341,6 +342,9 @@
             </div>
             <div class="plot-container">
                 <!-- Placeholder for plot -->
+                <img id="loading-gif" src="{{ url_for('static', filename='model_training_2.gif') }}" alt="Loading..." style="display: none; max-width: 60%; max-height: 60%;">
+                <!-- Placeholder for plot -->
+                <img id="plot-image" src="" alt="Forecast Plot" style="display: none; max-width: 120%; max-height: 120%;">
             </div>
         </div>
         <div class="bottom-container">
@@ -567,6 +571,27 @@
                 return;
             }
 
+            // Show loading GIF and hide the plot image
+            const loadingGif = document.getElementById('loading-gif');
+            const plotImage = document.getElementById('plot-image');
+
+            if (loadingGif) {
+                loadingGif.style.display = 'block';
+            } else {
+                const newLoadingGif = document.createElement('img');
+                newLoadingGif.id = 'loading-gif';
+                newLoadingGif.src = "{{ url_for('static', filename='model_training_2.gif') }}";
+                newLoadingGif.alt = 'Loading...';
+                newLoadingGif.style.display = 'block';
+                newLoadingGif.style.maxWidth = '60%';
+                newLoadingGif.style.maxHeight = '60%';
+                document.querySelector('.plot-container').appendChild(newLoadingGif);
+            }
+
+            if (plotImage) {
+                plotImage.style.display = 'none';
+            }
+
             fetch('/predict', {
                 method: 'POST',
                 headers: {
@@ -581,22 +606,33 @@
             })
             .then(response => response.json())
             .then(data => {
+                 // Hide loading GIF
+                if (loadingGif) {
+                    loadingGif.style.display = 'none';
+                }
                 if (data.error) {
                     alert(data.error);
-                } else {                   
-                    const plotContainer = document.querySelector('.plot-container');
-                    // Create a new image element
-                    const newPlotImg = document.createElement('img');
-                    newPlotImg.src = `data:image/png;base64,${data.plot}`;
-                    newPlotImg.alt = "Forecast Plot";
-                    // Replace existing plot image if present
-                    plotContainer.innerHTML = '';
-                    plotContainer.appendChild(newPlotImg);
-                }
+                } 
+                // Create a new plot image and update the plot container
+                const plotContainer = document.querySelector('.plot-container');
+                const newPlotImg = document.createElement('img');
+                newPlotImg.id = 'plot-image';
+                newPlotImg.src = `data:image/png;base64,${data.plot}`;
+                newPlotImg.alt = "Forecast Plot";
+                newPlotImg.style.maxWidth = '100%'; // Adjust as needed
+                newPlotImg.style.maxHeight = '100%'; // Adjust as needed
+
+                // Clear old content and append the new plot
+                plotContainer.innerHTML = '';
+                plotContainer.appendChild(newPlotImg);
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred while predicting.');
+                // Hide loading GIF in case of error
+                if (loadingGif) {
+                    loadingGif.style.display = 'none';
+                }
             });
         }
 

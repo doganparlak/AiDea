@@ -733,7 +733,7 @@ class ARCH_model(Model):
     def __init__(self, data, symbol_name):
         super().__init__(data = data['Close'], open = data['Open'], high = data['High'], low = data['Low'], volume = data['Volume'], symbol_name = symbol_name)
         self.trained_model = None
-        self.model_type = 'Generalized AutoRegressive Conditional Heteroskedasticity'
+        self.model_type = 'Autoregressive Conditional Heteroskedasticity'
         self.stationary = False
         self.show_backtest = True
 
