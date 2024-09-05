@@ -360,7 +360,7 @@ def init_routes(app):
             end_date = now.strftime("%Y-%m-%d")
 
             #Check if model already exists
-            #TrainedModels.delete_all_models()
+            TrainedModels.delete_all_models()
             model_obj = TrainedModels.load_trained_model(model_type=model_type, start_date=start_date, end_date=end_date, symbol=symbol)
             if not model_obj:  # if the model is already trained avoid re-training it.
                 data = fetch_data(symbol, start_date, end_date)

@@ -66,7 +66,7 @@ class AR_model(Model):
         self.trained_model = None
         self.model_type = 'Autoregressive'
         self.stationary = False
-        self.show_backtest = True
+        self.show_backtest = False
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -82,7 +82,7 @@ class AR_model(Model):
             # Check stationarity and apply log transformation if needed
             data = self.data
             if not self.check_stationarity(self.data):
-                print("Series is not stationary. Applying log transformation...")
+                #print("Series is not stationary. Applying log transformation...")
                 data = self.log_transform(self.data)
                     
             # Define parameter grid for tuning
@@ -131,8 +131,8 @@ class AR_model(Model):
 
             best_trend, best_lags = best_params
         
-            print(f"Best MSE score: {best_mse:.4f}")
-            print(f"Best parameters: trend={best_trend}, lags={best_lags}")
+            #print(f"Best MSE score: {best_mse:.4f}")
+            #print(f"Best parameters: trend={best_trend}, lags={best_lags}")
         
             # Fit the best model on the entire dataset 
             try:
@@ -152,6 +152,7 @@ class AR_model(Model):
             if self.last_val_predictions is not None and self.last_val_index is not None:
                self.last_val_predictions = np.exp(self.last_val_predictions)
 
+        forecast_prices.iloc[0] = self.data.iloc[-1]
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
@@ -220,7 +221,7 @@ class ARIMA_model(Model):
         self.trained_model = None
         self.model_type = 'Autoregressive Integrated Moving Average'
         self.stationary = False
-        self.show_backtest = True
+        self.show_backtest = False
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
         result = adfuller(series)
@@ -235,7 +236,7 @@ class ARIMA_model(Model):
             # Check stationarity and apply log transformation if needed
             data = self.data
             if not self.check_stationarity(self.data):
-                print("Series is not stationary. Applying log transformation...")
+                #print("Series is not stationary. Applying log transformation...")
                 data = self.log_transform(self.data)
                     
             # Define parameter grid for tuning
@@ -289,8 +290,8 @@ class ARIMA_model(Model):
                                 self.last_val_index = val_index
 
             best_trend, best_p, best_d, best_q = best_params
-            print(f"Best MSE score: {best_mse:.4f}")
-            print(f"Best parameters: trend={best_trend}, p={best_p}, d={best_d}, q={best_q}")
+            #print(f"Best MSE score: {best_mse:.4f}")
+            #print(f"Best parameters: trend={best_trend}, p={best_p}, d={best_d}, q={best_q}")
         
             # Fit the best model on the entire dataset 
             try:
@@ -310,6 +311,7 @@ class ARIMA_model(Model):
             if self.last_val_predictions is not None and self.last_val_index is not None:
                 self.last_val_predictions = np.exp(self.last_val_predictions)
 
+        forecast_prices.iloc[0] = self.data.iloc[-1]
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
@@ -380,7 +382,7 @@ class SARIMA_model(Model):
         self.trained_model = None
         self.model_type = 'Seasonal Autoregressive Integrated Moving Average'
         self.stationary = False
-        self.show_backtest = True
+        self.show_backtest = False
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -435,9 +437,10 @@ class SARIMA_model(Model):
     
     def train(self):
             warnings.filterwarnings("ignore")
+            optuna.logging.set_verbosity(optuna.logging.WARNING)
             # Check stationarity and apply log transformation if needed
             if not self.check_stationarity(self.data):
-                print("Series is not stationary. Applying log transformation...")
+                #print("Series is not stationary. Applying log transformation...")
                 self.data = self.log_transform(self.data)
                     
              # Create an Optuna study
@@ -463,8 +466,8 @@ class SARIMA_model(Model):
             self.last_val_index = best_trial.user_attrs["best_val_index"]
 
             
-            print(f"Best MSE score: {best_mse:.4f}")
-            print(f"Best parameters: {best_params}")
+            #print(f"Best MSE score: {best_mse:.4f}")
+            #print(f"Best parameters: {best_params}")
 
             # Fit the best model on the entire dataset
             try:
@@ -487,6 +490,7 @@ class SARIMA_model(Model):
             if self.last_val_predictions is not None and self.last_val_index is not None:
                 self.last_val_predictions = np.exp(self.last_val_predictions)
 
+        forecast_prices.iloc[0] = self.data.iloc[-1]
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
@@ -557,7 +561,7 @@ class HWES_model(Model):
         self.trained_model = None
         self.model_type = 'Holt-Winters Exponential Smoothing'
         self.stationary = False
-        self.show_backtest = True
+        self.show_backtest = False
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -612,9 +616,10 @@ class HWES_model(Model):
     
     def train(self):
         warnings.filterwarnings("ignore")
+        optuna.logging.set_verbosity(optuna.logging.WARNING)
         # Check stationarity and apply log transformation if needed
         if not self.check_stationarity(self.data):
-            print("Series is not stationary. Applying log transformation...")
+            #print("Series is not stationary. Applying log transformation...")
             self.data = self.log_transform(self.data)
                 
         # Create an Optuna study
@@ -640,8 +645,8 @@ class HWES_model(Model):
         self.last_val_index = best_trial.user_attrs["best_val_index"]
 
         
-        print(f"Best MSE score: {best_mse:.4f}")
-        print(f"Best parameters: {best_params}")
+        #print(f"Best MSE score: {best_mse:.4f}")
+        #print(f"Best parameters: {best_params}")
 
         # Fit the best model on the entire dataset
         try:
@@ -665,6 +670,7 @@ class HWES_model(Model):
             if self.last_val_predictions is not None and self.last_val_index is not None:
                 self.last_val_predictions = np.exp(self.last_val_predictions)
 
+        forecast_prices.iloc[0] = self.data.iloc[-1]
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
@@ -735,7 +741,7 @@ class ARCH_model(Model):
         self.trained_model = None
         self.model_type = 'Autoregressive Conditional Heteroskedasticity'
         self.stationary = False
-        self.show_backtest = True
+        self.show_backtest = False
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -796,9 +802,10 @@ class ARCH_model(Model):
     
     def train(self):
             warnings.filterwarnings("ignore")
+            optuna.logging.set_verbosity(optuna.logging.WARNING)
             # Check stationarity and apply log transformation if needed
             if not self.check_stationarity(self.data):
-                print("Series is not stationary. Applying log transformation...")
+                #print("Series is not stationary. Applying log transformation...")
                 self.data = self.log_transform(self.data)
                     
             # Create an Optuna study
@@ -825,8 +832,8 @@ class ARCH_model(Model):
             self.last_val_index = best_trial.user_attrs["best_val_index"]
 
             
-            print(f"Best MSE score: {best_mse:.4f}")
-            print(f"Best parameters: {best_params}")
+            #print(f"Best MSE score: {best_mse:.4f}")
+            #print(f"Best parameters: {best_params}")
 
             # Fit the best model on the entire dataset
             try:
@@ -849,12 +856,12 @@ class ARCH_model(Model):
             if self.last_val_predictions is not None and self.last_val_index is not None:
                 self.last_val_predictions = np.exp(self.last_val_predictions)
 
+        forecast_prices[0] = self.data.iloc[-1]
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
         # Create figure and axis
         fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
-
         # Create candlestick data
         candlestick_data = pd.DataFrame({
             'Date': self.data.index,
@@ -919,7 +926,7 @@ class UCM_model(Model):
         self.trained_model = None
         self.model_type = 'Unobserved Components Model'
         self.stationary = False
-        self.show_backtest = True
+        self.show_backtest = False
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -978,9 +985,10 @@ class UCM_model(Model):
     
     def train(self):
             warnings.filterwarnings("ignore")
+            optuna.logging.set_verbosity(optuna.logging.WARNING)
             # Check stationarity and apply log transformation if needed
             if not self.check_stationarity(self.data):
-                print("Series is not stationary. Applying log transformation...")
+                #print("Series is not stationary. Applying log transformation...")
                 self.data = self.log_transform(self.data)
                     
             # Create an Optuna study
@@ -1006,8 +1014,8 @@ class UCM_model(Model):
             self.last_val_index = best_trial.user_attrs["best_val_index"]
 
             
-            print(f"Best MSE score: {best_mse:.4f}")
-            print(f"Best parameters: {best_params}")
+            #print(f"Best MSE score: {best_mse:.4f}")
+            #print(f"Best parameters: {best_params}")
 
             # Fit the best model on the entire dataset
             try:
@@ -1030,6 +1038,7 @@ class UCM_model(Model):
             if self.last_val_predictions is not None and self.last_val_index is not None:
                 self.last_val_predictions = np.exp(self.last_val_predictions)
 
+        forecast_prices.iloc[0] = self.data.iloc[-1]
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
