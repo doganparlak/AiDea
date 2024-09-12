@@ -341,7 +341,9 @@
                 </div>
             </div>
             <div class="plot-container">
-                <!-- Placeholder for plot -->
+                <!-- Initial placeholder image -->
+                <img id="initial-image" src="{{ url_for('static', filename='forecaster_init_img.png') }}" alt="Initial Image" style="max-width: 60%; max-height: 60%;">
+                <!-- Placeholder for gif -->
                 <img id="loading-gif" src="{{ url_for('static', filename='model_training_2.gif') }}" alt="Loading..." style="display: none; max-width: 60%; max-height: 60%;">
                 <!-- Placeholder for plot -->
                 <img id="plot-image" src="" alt="Forecast Plot" style="display: none; max-width: 120%; max-height: 120%;">
@@ -390,6 +392,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             fetchSymbols();
             updateOptionsBasedOnAccountType();
+
+            // Ensure initial image is visible on load
+            const initialImage = document.getElementById('initial-image');
+            if (initialImage) {
+                initialImage.style.display = 'block';
+            }
         });
 
         function updateOptionsBasedOnAccountType() {
@@ -572,8 +580,13 @@
             }
 
             // Show loading GIF and hide the plot image
+            const initialImage = document.getElementById('initial-image');
             const loadingGif = document.getElementById('loading-gif');
             const plotImage = document.getElementById('plot-image');
+
+            if (initialImage) {
+                initialImage.style.display = 'none';
+            }
 
             if (loadingGif) {
                 loadingGif.style.display = 'block';
