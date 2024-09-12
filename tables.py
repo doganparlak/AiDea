@@ -94,6 +94,9 @@ class TemporaryPassword(db.Model):
     email = db.Column(db.String(120), primary_key=True, nullable=False)
     temp_password = db.Column(db.String(255), nullable=False)
 
+    def __repr__(self):
+        return f'<User: {self.email} - Temporary Password: {self.temp_password}>'
+    
     @classmethod
     def delete_all_temporary_passwords():
         try:

@@ -1,0 +1,5 @@
+email:
+  sender_email: "dogan.parlak.1404@gmail.com"
+  smtp_server: "smtp.gmail.com"
+  sender_password: "kouq fqhn rsgh smrf"
+  smtp_port: 587

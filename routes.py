@@ -1,23 +1,69 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 import string
+import yaml
 import random
 import re
 import yfinance as yf
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timedelta
-
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from models import create_model, Model, AR_model
 from tables import db, User, Symbol, TrainedModels, TemporaryPassword
+
+# Read the configuration file at the top of the script
+def read_settings(file_path):
+    with open(file_path, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
+
+# Load the settings file
+settings = read_settings('settings.yaml')
 
 def generate_temporary_password(length=8):
     letters_and_digits = string.ascii_letters + string.digits
     return ''.join(random.choice(letters_and_digits) for i in range(length))
 
-def send_email(email, temporary_password):
+def send_email(receiver_email, temporary_password):
     # Placeholder function to simulate sending an email
     # Implement actual email sending logic here
-    print(f"Sending temporary password to {email}: {temporary_password}")
+    print(f"Sending temporary password to {receiver_email}: {temporary_password}")
+
+    #Sender Info
+    sender_email = settings['email']['sender_email']
+    sender_password = settings['email']['sender_password']
+    smtp_server = settings['email']['smtp_server']
+    smtp_port = settings['email']['smtp_port']
+    #Message Info
+    subject = 'Your Temporary Password for AiDea Account Recovery'
+    body = (
+        f"Dear User,\n\n"
+        f"We have generated a temporary password for you to reset your account password:\n\n"
+        f"Temporary Password: {temporary_password}\n\n"
+        f"For your security, please do not share this password with anyone. "
+        f"If you did not request this reset, please contact our support team immediately.\n\n"
+        f"Thank you for your attention.\n\n"
+        f"Best regards,\n\n"
+        f"AiDea Support Team"
+    )
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+    #Message Sending
+    try:
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, receiver_email, msg.as_string())
+        print("Email sent successfully!")
+    except Exception as e:
+        print(f"Failed to send email: {str(e)}")
+    finally:
+        server.quit()
 
 def is_valid_password(password):
     """Check if the password is valid based on the criteria."""
@@ -209,6 +255,8 @@ def init_routes(app):
 
             # Check the temporary password in the database
             temp_password_entry = TemporaryPassword.query.filter_by(email=email, temp_password=temp_password).first()
+
+            
             if temp_password_entry:
                 # Temporary password matches
                 return jsonify({'success': True, 'message': 'Temporary password verified. Proceed to reset password.'})
@@ -419,7 +467,7 @@ def init_routes(app):
         if user and user.account_type == 'basic':
             user.account_type = 'premium'
             db.session.commit()
-            print('upgrade completed')
+            print('Upgrade completed')
             return '', 204  # Return no content
         else:
             return '', 400  # Bad request if upgrade fails
@@ -435,7 +483,7 @@ def init_routes(app):
         if user and user.account_type == 'premium':
             user.account_type = 'basic'
             db.session.commit()
-            print('downgrade completed')
+            print('Downgrade completed')
             return '', 204  # Return no content
         else:
             return '', 400  # Bad request if downgrade fails

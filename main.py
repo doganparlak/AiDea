@@ -23,7 +23,7 @@ def delete_all_models_wrapper():
 # Function to create and start the scheduler
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
-    # Pass the wrapper function to the scheduler
+    # Pass the wrapper function to the scheduler, delete all models after 2 days
     scheduler.add_job(func=delete_all_models_wrapper, trigger="interval", days=2)
     scheduler.start()
 
@@ -36,7 +36,6 @@ app = create_app()
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        print(TrainedModels.query.all())
         create_scheduler(app)
 
     app.run(debug=True)
