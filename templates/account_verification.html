@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .account_verification-container {
+            background-color: white;
+            padding: 43.75px; /* 35px * 1.25 */
+            border-radius: 10px; /* 8px * 1.25 */
+            box-shadow: 0 0 12.5px rgba(0, 0, 0, 0.1); /* 10px * 1.25 */
+            width: 375px; /* 300px * 1.25 */
+            text-align: center;
+        }
+        .account_verification-container h2 {
+            margin-bottom: 25px; /* 20px * 1.25 */
+            color: #333;
+            font-size: 35px; /* 28px * 1.25 */
+        }
+        .account_verification-container input[type="password"] {
+            width: 92.5%;
+            padding: 12.5px; /* 10px * 1.25 */
+            margin: 12.5px 0; /* 10px * 1.25 */
+            border: 1px solid #ddd;
+            border-radius: 5px; /* 4px * 1.25 */
+        }
+        .account_verification-container button {
+            width: 100%;
+            padding: 12.5px; /* 10px * 1.25 */
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px; /* 4px * 1.25 */
+            color: white;
+            font-size: 20px; /* 16px * 1.25 */
+            cursor: pointer;
+        }
+        .account_verification-container button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="account_verification-container">
+        <h2>Account Verification</h2>
+        <form id="accountVerificationForm">
+            <input type="password" id="tempPassword" placeholder="Temporary Password" required>
+            <button type="submit">Verify Password</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/account_verification', { method: 'GET' })  // Make a GET request to ensure email is checked
+                .then(response => response.json())
+                .then(data => {
+                    if (data.redirect) {
+                        alert(data.message);
+                        window.location.href = data.redirect;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+        document.getElementById('accountVerificationForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const tempPassword = document.getElementById('tempPassword').value;
+
+            fetch('/account_verification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    tempPassword: tempPassword
+                })
+            }).then(response => response.json())
+              .then(data => {
+                  alert(data.message);
+                  if (data.redirect) {
+                      window.location.href = data.redirect;
+                  }
+              }).catch(error => {
+                  console.error('Error:', error);
+              });
+        });
+    </script>
+</body>
+</html>

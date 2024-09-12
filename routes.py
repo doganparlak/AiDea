@@ -26,7 +26,8 @@ def generate_temporary_password(length=8):
     letters_and_digits = string.ascii_letters + string.digits
     return ''.join(random.choice(letters_and_digits) for i in range(length))
 
-def send_email(receiver_email, temporary_password):
+def send_email(receiver_email, temporary_password,
+               mail_type = 'Reset'):
     # Placeholder function to simulate sending an email
     # Implement actual email sending logic here
     print(f"Sending temporary password to {receiver_email}: {temporary_password}")
@@ -37,17 +38,31 @@ def send_email(receiver_email, temporary_password):
     smtp_server = settings['email']['smtp_server']
     smtp_port = settings['email']['smtp_port']
     #Message Info
-    subject = 'Your Temporary Password for AiDea Account Recovery'
-    body = (
-        f"Dear User,\n\n"
-        f"We have generated a temporary password for you to reset your account password:\n\n"
-        f"Temporary Password: {temporary_password}\n\n"
-        f"For your security, please do not share this password with anyone. "
-        f"If you did not request this reset, please contact our support team immediately.\n\n"
-        f"Thank you for your attention.\n\n"
-        f"Best regards,\n\n"
-        f"AiDea Support Team"
-    )
+    subject = ''
+    body = ''
+    if mail_type == 'Reset':
+        subject = 'Your Temporary Password for AiDea Account Recovery'
+        body = (
+            f"Dear User,\n\n"
+            f"We have generated a temporary password for you to reset your account password:\n\n"
+            f"Temporary Password: {temporary_password}\n\n"
+            f"For your security, please do not share this password with anyone. "
+            f"If you did not request this reset, please contact our support team immediately.\n\n"
+            f"Thank you for your attention.\n\n"
+            f"Best regards,\n\n"
+            f"AiDea Support Team")
+    elif mail_type =='Sign-Up':
+        subject = 'Your Temporary Password for AiDea Sign-Up'
+        body = (
+            f"Dear User,\n\n"
+            f"We have generated a temporary password for you to sign-up:\n\n"
+            f"Temporary Password: {temporary_password}\n\n"
+            f"For your security, please do not share this password with anyone. "
+            f"If you did not request to sign-up, please ignore this message.\n\n"
+            f"Thank you for your attention.\n\n"
+            f"Best regards,\n\n"
+            f"AiDea Support Team")
+    
     msg = MIMEMultipart()
     msg['From'] = sender_email
     msg['To'] = receiver_email
@@ -197,15 +212,52 @@ def init_routes(app):
             
             # Create new user
             hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+            session['signupEmail'] = email
+            session['signupHashedPassword'] = hashed_password
 
-            # Creating an empty list of symbols for the new user is implicit because we start with no symbols related to the user
-            new_user = User(email=email, password=hashed_password, account_type='basic')
-            try:
-                db.session.add(new_user)
+            # Generate a temporary password
+            temp_password = generate_temporary_password()
+            # Check if a temporary password entry already exists for the email
+            temp_password_entry = TemporaryPassword.query.filter_by(email=email).first()
+            if temp_password_entry: # If so, delete the previous one
+                db.session.delete(temp_password_entry)
                 db.session.commit()
-                return jsonify({'message': 'Sign-up successful!', 'redirect': url_for('login')}), 200
-            except Exception as e:
-                return jsonify({'message': 'Error creating user.'}), 500
+
+            #Replace it with the new one
+            temp_password_entry = TemporaryPassword(email=email, temp_password=temp_password) 
+            db.session.add(temp_password_entry)
+            db.session.commit()
+            
+            # Send a temporary password
+            send_email(email, temp_password, mail_type= 'Sign-Up')
+            
+
+            return jsonify({'message': 'A temporary password for account verification is sent to your email', 'redirect': url_for('account_verification')}), 200
+
+    @app.route('/account_verification', methods=['GET', 'POST'])
+    def account_verification():
+        if request.method == 'GET':
+            return render_template('account_verification.html')
+        
+        if request.method == 'POST':
+            data = request.get_json()
+            temp_password = data.get('tempPassword')
+            email = session.get('signupEmail')
+            hashed_password = session.get('signupHashedPassword')
+            
+            #Check if the entered temporary password is correct
+            temp_password_entry = TemporaryPassword.query.filter_by(email=email, temp_password=temp_password).first()
+            if temp_password_entry:
+                # Temporary password matches
+                new_user = User(email=email, password=hashed_password, account_type='basic')
+                try:
+                    db.session.add(new_user)
+                    db.session.commit()
+                    return jsonify({'message': 'Sign-up successful!', 'redirect': url_for('login')}), 200
+                except:
+                    return jsonify({'message': 'Error creating user.'}), 500
+            else:
+                return jsonify({'success': False, 'message': 'Invalid temporary password'})
 
     @app.route('/request_email', methods=['GET', 'POST'])
     def request_email():
@@ -434,23 +486,24 @@ def init_routes(app):
             #flash('You need to log in first.', 'warning')
             return redirect(url_for('login'))
 
+        email = session['email']
         user_id = session['user_id']
         user = User.query.get(user_id)  # Fetch user by ID
+  
         if user:
-            # Step 1: Delete all symbols associated with the user
+            # Delete from temporary password entries
+            temporary_password_entry = TemporaryPassword.query.filter_by(email=email).first()
+            db.session.delete(temporary_password_entry)
+            db.session.commit()
+            # Delete from users table hence the symbols table
             Symbol.query.filter_by(user_id=user.id).delete()
-
-            # Step 2: Delete the user from the User table
             db.session.delete(user)
-
-            # Step 3: Commit the transaction to apply changes to the database
             db.session.commit()
 
-            # Step 4: Remove the user from the session since the account is deleted
+            #Remove from the session
             session.pop('user_id', None)
-            session.pop('email', None)  # Clean up the email as well
+            session.pop('email', None)  
 
-            #flash('Your account has been deleted successfully.', 'success')
             return redirect(url_for('login'))  # Redirect to login page
         else:
             #flash('Account deletion failed.', 'danger')
