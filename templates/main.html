@@ -359,6 +359,7 @@
                     <option value="ARCH">ARCH</option>
                     <option value="UCM">UCM</option> 
                     <option value="SARIMA">SARIMA</option> 
+                    <option value="AI">AI</option> 
                 </select>
                 <select id="data_length">
                     <option value="" disabled selected>Historical Data Length</option>
@@ -435,7 +436,7 @@
             options.forEach(option => option.disabled = false);
         }
         function filterBasicOptions(modelSelect, dataLengthSelect, forecastDaysSelect) {
-            const premiumModels = ['ARCH', 'UCM', 'SARIMA'];
+            const premiumModels = ['ARCH', 'UCM', 'SARIMA', 'AI'];
             const premiumDataLengths = ['2_years', '3_years', '4_years', '5_years'];
             const premiumForecastDays = ['3_months', '4_months', '5_months', '6_months', '1_year'];
 

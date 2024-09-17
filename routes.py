@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from models import create_model, Model, AR_model
+from models import create_model
 from tables import db, User, Symbol, TrainedModels, TemporaryPassword
 
 # Read the configuration file at the top of the script
@@ -458,18 +458,23 @@ def init_routes(app):
             now = datetime.now()
             start_date =  (now - timedelta(days = data_length)).strftime("%Y-%m-%d")
             end_date = now.strftime("%Y-%m-%d")
-
             #Check if model already exists
-            model_obj = TrainedModels.load_trained_model(model_type=model_type, start_date=start_date, end_date=end_date, symbol=symbol)
-            if not model_obj:  # if the model is already trained avoid re-training it.
+            model_obj = None
+            if model_type != 'AI': # Model is not AI
+                model_obj = TrainedModels.load_trained_model(model_type=model_type, start_date=start_date, end_date=end_date, symbol=symbol)
+                if not model_obj:  # if the model is already trained avoid re-training it.
+                    data = fetch_data(symbol, start_date, end_date)
+                    model_obj = create_model(model_type, data, symbol)
+                    model_obj.train()
+                    # Create a new instance of Model
+                    new_model = TrainedModels(symbol= symbol, model_type= model_type, start_date= start_date, end_date= end_date)
+                    # Save the trained model to the database
+                    new_model.save_trained_model(model_obj)
+            else: # Model is AI
                 data = fetch_data(symbol, start_date, end_date)
                 model_obj = create_model(model_type, data, symbol)
                 model_obj.train()
-                # Create a new instance of Model
-                new_model = TrainedModels(symbol= symbol, model_type= model_type, start_date= start_date, end_date= end_date)
-                # Save the trained model to the database
-                new_model.save_trained_model(model_obj)
-            
+
             # Forecast
             plot_data = model_obj.forecast(forecast_days=forecast_days)
             return jsonify({'plot': plot_data}), 200

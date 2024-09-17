@@ -3,3 +3,6 @@ email:
   smtp_server: "smtp.gmail.com"
   sender_password: "kouq fqhn rsgh smrf"
   smtp_port: 587
+
+OPENAI-API-KEY:
+  key: "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"
