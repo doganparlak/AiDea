@@ -17,7 +17,11 @@ import matplotlib.dates as mdates
 import matplotlib.patches as mpatches
 import base64
 import io
+import re
 import optuna
+from openai import OpenAI
+import yaml
+
 
 # Suppress all warnings from statsmodels
 warnings.filterwarnings("ignore", category=Warning, module='statsmodels')
@@ -36,6 +40,22 @@ def create_model(model_type, data, symbol_name):
         return ARCH_model(data, symbol_name)
     elif model_type == 'UCM':
         return UCM_model(data, symbol_name)
+    elif model_type == 'AI':
+        return AI_model(data, symbol_name)
+
+# Read the configuration file at the top of the script
+def read_settings(file_path):
+    with open(file_path, 'r') as file:
+        config = yaml.safe_load(file)
+    return config
+
+# Load the settings file
+settings = read_settings('settings.yaml')
+# Set your API key
+client = OpenAI(
+    # This is the default and can be omitted
+    api_key= settings['OPENAI-API-KEY']['key'],
+)
 class Model(ABC):
     def __init__(self, data, open, high, low, volume, symbol_name):
         self.data = data
@@ -1085,6 +1105,129 @@ class UCM_model(Model):
                 ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
 
         ax1.legend(loc='upper left')
+        # Plot the volume data
+        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
+        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
+        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
+        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
+        ax2.grid(True, alpha = 0.3)
+        
+        # Save plot to a bytes buffer
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plot_data = base64.b64encode(buf.read()).decode('utf-8')
+        buf.close()
+        #plt.show()
+        plt.close(fig)  # Close the plot to free up resources
+
+        return plot_data
+    
+class AI_model(Model):
+    def __init__(self, data, symbol_name):
+        super().__init__(data = data['Close'], open = data['Open'], high = data['High'], low = data['Low'], volume = data['Volume'], symbol_name = symbol_name)
+        self.model_type = 'Artificial Intelligence Model'
+        self.data_prompt = ''
+        self.data_len = 30
+    def train(self):
+        # Price data formatted as a string for the prompt, using the last 30 observations
+        pass
+    def adjust_forecast_prices(self, forecast_prices):
+        adjusted_prices = forecast_prices[:]
+        for idx in range(len(adjusted_prices) - 1):
+            current_price = adjusted_prices[idx]
+            next_price = adjusted_prices[idx + 1]
+            if next_price > current_price * 1.10:
+                adjusted_prices[idx + 1] = current_price * 1.10
+            elif next_price < current_price * 0.90:
+                adjusted_prices[idx + 1] = current_price * 0.90
+        
+        # Ensure the forecasted prices remain consistent
+        for idx in range(1, len(adjusted_prices)):
+            if adjusted_prices[idx] > adjusted_prices[idx - 1] * 1.10:
+                adjusted_prices[idx] = adjusted_prices[idx - 1] * 1.10
+            elif adjusted_prices[idx] < adjusted_prices[idx - 1] * 0.90:
+                adjusted_prices[idx] = adjusted_prices[idx - 1] * 0.90
+        
+        adjusted_prices[0] = self.data[-1]
+        return adjusted_prices
+    
+    def forecast(self, forecast_days):
+        # Function to generate forecast for a chunk
+        def generate_forecast(chunk):
+            prompt = (
+                f"Given the historical price data: {chunk}, "
+                f"forecast the next {forecast_days} days of prices. "
+                f"Provide a list of predicted prices for the next {forecast_days} days, "
+                f"formatted as: price1, price2, price3, ..., price{forecast_days}. "
+                f"Ensure realistic fluctuations with moderate changes between consecutive days. "
+                f"Give more weight to the most recent observations in your forecasting to better reflect recent market behavior. "
+                f"Make sure the first forecasted price is very close to the last price in the historical data to maintain continuity."
+            )
+            response = client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    }
+                ],
+                model="gpt-3.5-turbo", 
+                max_tokens=2048,  # Limit the number of tokens in the response
+                temperature=0.2,  # Control the creativity of the model
+            )
+            decoded_output = response.choices[0].message.content
+            extracted_prices = re.findall(r"[-+]?\d*\.\d+|\d+", decoded_output)
+            return [float(price) for price in extracted_prices]
+        
+        # Chunking the data and generating forecasts based on the last 30 observations
+        forecast_prices = []
+        chunk = ', '.join(str(val) for val in self.data[-self.data_len:])  # Only the last 30 values
+        chunk_forecast = generate_forecast(chunk)
+        forecast_prices.extend(chunk_forecast)
+        # Limit forecast to the desired number of days
+        forecast_prices = forecast_prices[1:forecast_days+1]
+        # Apply the adjustment logic
+        forecast_prices = self.adjust_forecast_prices(forecast_prices)
+        # Create date range for forecasted data
+        forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=len(forecast_prices), freq='D')    
+        # Create figure and axis
+        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
+
+        # Create candlestick data
+        candlestick_data = pd.DataFrame({
+            'Date': self.data.index,
+            'Open': self.open,
+            'Close': self.data,
+            'High': self.high,
+            'Low': self.low
+        })
+        # Plot the candlestick data with decreased transparency
+        for idx, row in candlestick_data.iterrows():
+            date_num = mdates.date2num(row['Date'])
+            if row['Close'] >= row['Open']:
+                color = 'green'
+                lower = row['Open']
+                height = row['Close'] - row['Open']
+            else:
+                color = 'red'
+                lower = row['Close']
+                height = row['Open'] - row['Close']
+            
+            # Draw high and low lines (wicks) outside the rectangle
+            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
+            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
+            
+            # Draw the rectangle (candlestick body)
+            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
+        
+        # Plot the price data
+        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
+        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
+        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
+        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
+        ax1.grid(True, alpha = 0.3)
+        ax1.legend(loc='upper left')
+
         # Plot the volume data
         volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
         ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)

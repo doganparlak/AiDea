@@ -97,9 +97,10 @@
                 <h3 style="color: #c9302c;">Common Approach</h3>
                 <p> The models consist of parameters that are meticulously calibrated to align with the historical price data provided. 
                     For each model, the algorithm is designed to capture patterns within the historical data that yield the most accurate forecasts, as determined by backtesting results.
-                    The AR and ARIMA models utilize grid search for parameter tuning, while the Tree-Structured Parzen Estimator, a form of Bayesian optimization, is employed for HWES, ARCH, and SARIMA models. 
+                    The AR and ARIMA models utilize grid search for parameter tuning, while the Tree-Structured Parzen Estimator, a form of Bayesian optimization, is employed for HWES, ARCH, UCM, and SARIMA models. 
                     Time series splitting is implemented to facilitate backtesting and optimize hyperparameters. Stationarity is assessed using the Augmented Dickey-Fuller (ADF) test, and if necessary, log transformation is applied to stabilize variance.
-                    Mean Squared Error (MSE) is selected as the loss function, guiding the process of parameter tuning.
+                    Mean Squared Error (MSE) is selected as the loss function, guiding the process of parameter tuning. 
+                    Conversely, the AI model differs from the others in that it employs a large language model (LLM), which is fine-tuned using the temperature parameter.
                 </p>
             </div>
             <div class="model-section">
@@ -157,6 +158,14 @@
                     order of the seasonal component of the model for the autoregressive, differences, moving average parameters, and periodicity
                     (<span style="color: #c9302c;">P</span>,<span style="color: #c9302c;">D</span>,<span style="color: #c9302c;">Q</span>
                     <span style="color: #c9302c;">s</span>).
+                </p>
+            </div>
+            <div class="model-section">
+                <h3>AI (Artificial Intelligence) Model</h3>
+                <p>The AI model leverages OpenAI's advanced GPT architecture to forecast future prices of a given symbol by analyzing historical market data. 
+                    As a Large Language Model trained on vast datasets, it inherently selects the optimal approach to forecast price movements, capturing complex, non-linear patterns in the data. 
+                    The <span style="color: #c9302c;">temperature</span> parameter is optimized to ensure the model focuses on exploiting learned patterns, providing consistent and reliable predictions. 
+                    This setup allows the model to prioritize the most likely outcomes, delivering accurate and stable forecasts that reflect recent market trends.
                 </p>
             </div>
             
