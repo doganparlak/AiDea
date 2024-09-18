@@ -454,10 +454,10 @@ def init_routes(app):
             data_length = convert_to_days(data['data_length'])
             forecast_days = convert_to_days(data['forecast_days'])
             model_type = data['model_type']
-            #Set start and end date
             now = datetime.now()
             start_date =  (now - timedelta(days = data_length)).strftime("%Y-%m-%d")
             end_date = now.strftime("%Y-%m-%d")
+
             #Check if model already exists
             model_obj = None
             if model_type != 'AI': # Model is not AI

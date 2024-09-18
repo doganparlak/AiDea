@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Page</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
         body {
             display: flex;
@@ -190,11 +191,29 @@
             align-items: center; /* Center the content vertically */
             justify-content: center; /* Center the content horizontally */
             overflow: hidden;
+            position: relative; /* Ensure correct positioning */
+        }
+        #plot-container {
+            width: 100%; /* Specific width for the Plotly plot */
+            height: 100%; /* Specific height for the Plotly plot, adjust as needed */
+            position: absolute;
+            display: flex;
+            top: 2.5%; /* Center the plot vertically */
+            left: 12.5%; /* Center the plot horizontally */
+            transform: scale(1.3, 1.05); /* Center the plot within the container */
+        }
+        #loading-gif {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10; /* Ensure it's above other elements */
         }
         .plot-container img {
-            max-width: 120%;
-            max-height: 120%;
-            object-fit: fill; /* Ensure the image maintains its aspect ratio */
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Ensure the image maintains its aspect ratio */
         }
         .bottom-container {
             margin-top: 1rem;
@@ -346,7 +365,7 @@
                 <!-- Placeholder for gif -->
                 <img id="loading-gif" src="{{ url_for('static', filename='model_training_2.gif') }}" alt="Loading..." style="display: none; max-width: 60%; max-height: 60%;">
                 <!-- Placeholder for plot -->
-                <img id="plot-image" src="" alt="Forecast Plot" style="display: none; max-width: 120%; max-height: 120%;">
+                <div id="plot-container"></div>
             </div>
         </div>
         <div class="bottom-container">
@@ -396,8 +415,16 @@
 
             // Ensure initial image is visible on load
             const initialImage = document.getElementById('initial-image');
+            const loadingGif = document.getElementById('loading-gif');
+            const plotImage = document.getElementById('plot-container');
             if (initialImage) {
                 initialImage.style.display = 'block';
+            }
+            if (loadingGif) {
+                loadingGif.style.display = 'none';  // Ensure loading gif is hidden initially
+            }
+            if (plotImage) {
+                plotImage.style.display = 'none';  // Ensure plot is hidden initially
             }
         });
 
@@ -563,6 +590,25 @@
             .catch(error => console.error('Error deleting symbol:', error));
         }
 
+        // Helper function to toggle visibility
+        function toggleVisibility(element, displayStyle) {
+            if (element) {
+                element.style.display = displayStyle;
+            }
+        }
+        function getFullModelName(modelType) {
+            const modelNames = {
+                'AR': 'Autoregressive',
+                'ARIMA': 'Autoregressive Integrated Moving Average',
+                'HWES': 'Holt-Winters Exponential Smoothing',
+                'ARCH': 'Autoregressive Conditional Heteroskedasticity',
+                'UCM': 'Unobserved Components Model',
+                'SARIMA': 'Seasonal Autoregressive Integrated Moving Average',
+                'AI': 'Artificial Intelligence'
+            };
+            return modelNames[modelType] || modelType; // Default to the model type if no match is found
+        }
+
         function predict() {
             const selectedSymbolDiv = document.querySelector('.symbol-list div.selected');
             if (!selectedSymbolDiv) {
@@ -580,75 +626,149 @@
                 return;
             }
 
-            // Show loading GIF and hide the plot image
+             // Hide the initial image and show the loading GIF
             const initialImage = document.getElementById('initial-image');
             const loadingGif = document.getElementById('loading-gif');
-            const plotImage = document.getElementById('plot-image');
-
-            if (initialImage) {
-                initialImage.style.display = 'none';
-            }
-
-            if (loadingGif) {
-                loadingGif.style.display = 'block';
-            } else {
-                const newLoadingGif = document.createElement('img');
-                newLoadingGif.id = 'loading-gif';
-                newLoadingGif.src = "{{ url_for('static', filename='model_training_2.gif') }}";
-                newLoadingGif.alt = 'Loading...';
-                newLoadingGif.style.display = 'block';
-                newLoadingGif.style.maxWidth = '60%';
-                newLoadingGif.style.maxHeight = '60%';
-                document.querySelector('.plot-container').appendChild(newLoadingGif);
-            }
-
-            if (plotImage) {
-                plotImage.style.display = 'none';
-            }
+            const plotImage = document.getElementById('plot-container');
+            toggleVisibility(initialImage, 'none');
+            toggleVisibility(loadingGif, 'block');
+            toggleVisibility(plotImage, 'none'); // Hide the plot while loading
 
             fetch('/predict', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    symbol: symbol,
-                    model_type: modelType,
-                    data_length: dataLength,
-                    forecast_days: forecastDays
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ symbol, model_type: modelType, data_length: dataLength, forecast_days: forecastDays })
             })
             .then(response => response.json())
             .then(data => {
-                 // Hide loading GIF
-                if (loadingGif) {
-                    loadingGif.style.display = 'none';
+                if (!data.plot || !data.plot.historical_data || !data.plot.forecasted_data) {
+                    throw new Error('Invalid data format');
                 }
-                if (data.error) {
-                    alert(data.error);
-                } 
-                // Create a new plot image and update the plot container
-                const plotContainer = document.querySelector('.plot-container');
-                const newPlotImg = document.createElement('img');
-                newPlotImg.id = 'plot-image';
-                newPlotImg.src = `data:image/png;base64,${data.plot}`;
-                newPlotImg.alt = "Forecast Plot";
-                newPlotImg.style.maxWidth = '100%'; // Adjust as needed
-                newPlotImg.style.maxHeight = '100%'; // Adjust as needed
 
-                // Clear old content and append the new plot
-                plotContainer.innerHTML = '';
-                plotContainer.appendChild(newPlotImg);
+                // Prepare the candlestick data for Plotly
+                const historicalData = data.plot.historical_data;
+                const forecastData = data.plot.forecasted_data;
+                const volumeColors = historicalData.close.slice(1).map((close, i) => 
+                    close >= historicalData.close[i] ? 'green' : 'red'
+                );
+                
+                // Plot using Plotly.js
+                const candlestickTrace = {
+                    x: historicalData.dates,
+                    close: historicalData.close,
+                    high: historicalData.high,
+                    low: historicalData.low,
+                    open: historicalData.open,
+                    type: 'candlestick',
+                    name: 'Historical Data',
+                    increasing: { line: { color: 'green' } },
+                    decreasing: { line: { color: 'red' } }
+                };
+                // Create the volume trace
+                const volumeTrace = {
+                    x: historicalData.dates.slice(1), // Volume is calculated based on the close price difference
+                    y: historicalData.volume.slice(1), // Ensure volume matches the dates
+                    type: 'bar',
+                    name: 'Volume',
+                    marker: {
+                        color: volumeColors
+                    },
+                    opacity: 0.5, // Adjusted opacity to make bars less transparent
+                    yaxis: 'y2' // Use the secondary y-axis
+                };
+
+                const forecastTrace = {
+                    x: forecastData.dates,
+                    y: forecastData.forecast_prices,
+                    mode: 'lines',
+                    name: 'Forecasted Prices',
+                    line: { color: 'black', width: 2}
+                };
+                
+                const fullModelName = getFullModelName(modelType);
+                
+                // Update the layout to include the secondary y-axis for volume and dynamic title
+                const layout = {
+                    title: `${fullModelName} <br> Forecast for ${symbol}`, // Include the symbol in the title
+                    grid: { rows: 3, columns: 1, pattern: 'independent' },
+                    xaxis: {title: 'Date', 
+                            automargin: true,
+                            range: [Math.min(...historicalData.dates) - 1, Math.max(...forecastData.dates) + 1],
+                            fixedrange: true},// Add padding on the x-axis to include forecast dates
+                    yaxis: { title: 'Price', domain: [0.45, 1], rangemode: 'normal', 
+                    range:  [Math.min(...historicalData.low, ...forecastData.forecast_prices) * 0.95,  // Add padding below
+                             Math.max(...historicalData.high, ...forecastData.forecast_prices) * 1.05  // Add padding above
+                            ],
+                            automargin: true,
+                            ticklabelposition: 'outside', // Position the labels outside the axis
+                            ticklabelpadding: 15}, // Adjust domain to fit candlestick
+                    yaxis2: {
+                        title: 'Volume',
+                        domain: [0.15, 0.40], // Adjust domain to fit volume plot
+                        anchor: 'x',
+                        range: [Math.min(...historicalData.volume) * 0.9, Math.max(...historicalData.volume) * 1.1],
+                        automargin: true, // Anchor yaxis2 to x
+                        ticklabelposition: 'outside', // Position the labels outside the axis
+                        ticklabelpadding: 15
+                    },
+                    xaxis2: {
+                        title: 'Date',
+                        anchor: 'y2',
+                        range: [Math.min(...historicalData.dates), Math.max(...forecastData.dates)], // Limit range for volume plot
+                        fixedrange: true // Allow zooming and panning within this range
+                    },
+                    yaxis3: {
+                        title: 'Price',
+                        domain: [0, 0.10], 
+                        rangemode: 'normal',
+                        automargin: true,
+                    },
+                    xaxis3: {
+                        title: 'Date',
+                        anchor: 'y3',
+                        range: [Math.min(...historicalData.dates), Math.max(...forecastData.dates)], // Limit range for third x-axis
+                        fixedrange: true, // Allow zooming and panning within this range
+                    },
+                    dragmode: 'pan',
+                    showlegend: true,
+                    hovermode: 'x',
+                    autosize: false,
+                    width: 900,
+                    height: 670, // Adjust height as needed
+                    legend: {
+                        x: 0,            // Center horizontally
+                        y: 1.15,            // Position slightly above the bottom edge of the plot area
+                        xanchor: 'left', // Center horizontally relative to x position
+                        yanchor: 'top',    // Align the top of the legend with y position
+                        orientation: 'v',  // Horizontal legend
+                        font: {
+                            size: 10,     // Reduce font size to make the legend more compact
+                            color: '#000' // Change color if needed
+                        },
+                        itemclick: 'toggleothers', // Toggle visibility for others when clicking an item
+                        itemwidth: 30,  // Adjust width of each item to fit more items in the legend
+                        itemheight: 10   // Adjust height of each item
+                    }
+            };
+
+                
+                const plotData = [candlestickTrace, volumeTrace, forecastTrace];
+
+                Plotly.newPlot('plot-container', plotData, layout);
+
+                // Show the plot once it's generated
+                toggleVisibility(loadingGif, 'none');
+                toggleVisibility(plotImage, 'block');
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('An error occurred while predicting.');
-                // Hide loading GIF in case of error
-                if (loadingGif) {
-                    loadingGif.style.display = 'none';
-                }
+                 // Hide loading GIF in case of error and show initial image or plot if available
+                toggleVisibility(loadingGif, 'none');
+                toggleVisibility(initialImage, 'block');
             });
         }
+
 
 
         document.getElementById('symbol-name').addEventListener('keypress', function(event) {

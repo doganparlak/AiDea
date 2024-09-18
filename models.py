@@ -176,64 +176,24 @@ class AR_model(Model):
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
-        # Create figure and axis
-        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
 
-        # Create candlestick data
-        candlestick_data = pd.DataFrame({
-            'Date': self.data.index,
-            'Open': self.open,
-            'Close': self.data,
-            'High': self.high,
-            'Low': self.low
-        })
-        # Plot the candlestick data with decreased transparency
-        for idx, row in candlestick_data.iterrows():
-            date_num = mdates.date2num(row['Date'])
-            if row['Close'] >= row['Open']:
-                color = 'green'
-                lower = row['Open']
-                height = row['Close'] - row['Open']
-            else:
-                color = 'red'
-                lower = row['Close']
-                height = row['Open'] - row['Close']
-            
-            # Draw high and low lines (wicks) outside the rectangle
-            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
-            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
-            
-            # Draw the rectangle (candlestick body)
-            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
-        # Plot the price data
-        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
-        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
-        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
-        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
-       
-        ax1.grid(True, alpha = 0.3)
-        # Plot the last validation split predictions if available
-        if self.show_backtest:
-            if self.last_val_predictions is not None and self.last_val_index is not None:
-                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
-        ax1.legend(loc='upper left')
-        # Plot the volume data
-        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
-        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
-        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
-        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
-        ax2.grid(True, alpha = 0.3)
+        # Convert data to JSON in order to send to the frontend
+        result = {
+            'historical_data': {
+                'dates': self.data.index.strftime('%Y-%m-%d').tolist(),
+                'close': self.data.tolist(),
+                'open': self.open.tolist(),
+                'high': self.high.tolist(),
+                'low': self.low.tolist(),
+                'volume': self.volume.tolist(),
+            },
+            'forecasted_data': {
+                'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
+                'forecast_prices': forecast_prices.tolist(),
+            }
+        }
         
-        # Save plot to a bytes buffer
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        plot_data = base64.b64encode(buf.read()).decode('utf-8')
-        buf.close()
-        #plt.show()
-        plt.close(fig)  # Close the plot to free up resources
-
-        return plot_data
+        return result
     
 class ARIMA_model(Model):    
     def __init__(self, data, symbol_name):
@@ -335,66 +295,24 @@ class ARIMA_model(Model):
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
-        # Create figure and axis
-        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
 
-        # Create candlestick data
-        candlestick_data = pd.DataFrame({
-            'Date': self.data.index,
-            'Open': self.open,
-            'Close': self.data,
-            'High': self.high,
-            'Low': self.low
-        })
-        # Plot the candlestick data with decreased transparency
-        for idx, row in candlestick_data.iterrows():
-            date_num = mdates.date2num(row['Date'])
-            if row['Close'] >= row['Open']:
-                color = 'green'
-                lower = row['Open']
-                height = row['Close'] - row['Open']
-            else:
-                color = 'red'
-                lower = row['Close']
-                height = row['Open'] - row['Close']
-            
-            # Draw high and low lines (wicks) outside the rectangle
-            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
-            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
-            
-            # Draw the rectangle (candlestick body)
-            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
-
-        # Plot the price data
-        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
-        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
-        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
-        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
-        ax1.grid(True, alpha = 0.3)
-
-        # Plot the last validation split predictions if available
-        if self.show_backtest:
-            if self.last_val_predictions is not None and self.last_val_index is not None:
-                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
-
-        ax1.legend(loc='upper left')
-        # Plot the volume data
-        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
-        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
-        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
-        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
-        ax2.grid(True, alpha = 0.3)
+        # Convert data to JSON in order to send to the frontend
+        result = {
+            'historical_data': {
+                'dates': self.data.index.strftime('%Y-%m-%d').tolist(),
+                'close': self.data.tolist(),
+                'open': self.open.tolist(),
+                'high': self.high.tolist(),
+                'low': self.low.tolist(),
+                'volume': self.volume.tolist(),
+            },
+            'forecasted_data': {
+                'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
+                'forecast_prices': forecast_prices.tolist(),
+            }
+        }
         
-        # Save plot to a bytes buffer
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        plot_data = base64.b64encode(buf.read()).decode('utf-8')
-        buf.close()
-        #plt.show()
-        plt.close(fig)  # Close the plot to free up resources
-
-        return plot_data
+        return result
     
 class SARIMA_model(Model):    
     def __init__(self, data, symbol_name):
@@ -514,66 +432,23 @@ class SARIMA_model(Model):
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
-        # Create figure and axis
-        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
-
-        # Create candlestick data
-        candlestick_data = pd.DataFrame({
-            'Date': self.data.index,
-            'Open': self.open,
-            'Close': self.data,
-            'High': self.high,
-            'Low': self.low
-        })
-        # Plot the candlestick data with decreased transparency
-        for idx, row in candlestick_data.iterrows():
-            date_num = mdates.date2num(row['Date'])
-            if row['Close'] >= row['Open']:
-                color = 'green'
-                lower = row['Open']
-                height = row['Close'] - row['Open']
-            else:
-                color = 'red'
-                lower = row['Close']
-                height = row['Open'] - row['Close']
-            
-            # Draw high and low lines (wicks) outside the rectangle
-            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
-            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
-            
-            # Draw the rectangle (candlestick body)
-            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
+        # Convert data to JSON in order to send to the frontend
+        result = {
+            'historical_data': {
+                'dates': self.data.index.strftime('%Y-%m-%d').tolist(),
+                'close': self.data.tolist(),
+                'open': self.open.tolist(),
+                'high': self.high.tolist(),
+                'low': self.low.tolist(),
+                'volume': self.volume.tolist(),
+            },
+            'forecasted_data': {
+                'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
+                'forecast_prices': forecast_prices.tolist(),
+            }
+        }
         
-        # Plot the price data
-        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
-        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
-        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
-        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
-        ax1.grid(True, alpha = 0.3)
-
-        # Plot the last validation split predictions if available
-        if self.show_backtest:
-            if self.last_val_predictions is not None and self.last_val_index is not None:
-                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
-
-        ax1.legend(loc='upper left')
-        # Plot the volume data
-        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
-        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
-        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
-        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
-        ax2.grid(True, alpha = 0.3)
-        
-        # Save plot to a bytes buffer
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        plot_data = base64.b64encode(buf.read()).decode('utf-8')
-        buf.close()
-        #plt.show()
-        plt.close(fig)  # Close the plot to free up resources
-
-        return plot_data
+        return result
 
 class HWES_model(Model):    
     def __init__(self, data, symbol_name):
@@ -694,66 +569,23 @@ class HWES_model(Model):
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
-        # Create figure and axis
-        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
-
-        # Create candlestick data
-        candlestick_data = pd.DataFrame({
-            'Date': self.data.index,
-            'Open': self.open,
-            'Close': self.data,
-            'High': self.high,
-            'Low': self.low
-        })
-        # Plot the candlestick data with decreased transparency
-        for idx, row in candlestick_data.iterrows():
-            date_num = mdates.date2num(row['Date'])
-            if row['Close'] >= row['Open']:
-                color = 'green'
-                lower = row['Open']
-                height = row['Close'] - row['Open']
-            else:
-                color = 'red'
-                lower = row['Close']
-                height = row['Open'] - row['Close']
-            
-            # Draw high and low lines (wicks) outside the rectangle
-            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
-            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
-            
-            # Draw the rectangle (candlestick body)
-            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
+        # Convert data to JSON in order to send to the frontend
+        result = {
+            'historical_data': {
+                'dates': self.data.index.strftime('%Y-%m-%d').tolist(),
+                'close': self.data.tolist(),
+                'open': self.open.tolist(),
+                'high': self.high.tolist(),
+                'low': self.low.tolist(),
+                'volume': self.volume.tolist(),
+            },
+            'forecasted_data': {
+                'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
+                'forecast_prices': forecast_prices.tolist(),
+            }
+        }
         
-        # Plot the price data
-        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
-        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
-        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
-        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
-        ax1.grid(True, alpha = 0.3)
-
-        # Plot the last validation split predictions if available
-        if self.show_backtest:
-            if self.last_val_predictions is not None and self.last_val_index is not None:
-                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
-
-        ax1.legend(loc='upper left')
-        # Plot the volume data
-        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
-        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
-        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
-        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
-        ax2.grid(True, alpha = 0.3)
-        
-        # Save plot to a bytes buffer
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        plot_data = base64.b64encode(buf.read()).decode('utf-8')
-        buf.close()
-        #plt.show()
-        plt.close(fig)  # Close the plot to free up resources
-
-        return plot_data
+        return result
     
 class ARCH_model(Model):    
     def __init__(self, data, symbol_name):
@@ -880,65 +712,23 @@ class ARCH_model(Model):
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
-        # Create figure and axis
-        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
-        # Create candlestick data
-        candlestick_data = pd.DataFrame({
-            'Date': self.data.index,
-            'Open': self.open,
-            'Close': self.data,
-            'High': self.high,
-            'Low': self.low
-        })
-        # Plot the candlestick data with decreased transparency
-        for idx, row in candlestick_data.iterrows():
-            date_num = mdates.date2num(row['Date'])
-            if row['Close'] >= row['Open']:
-                color = 'green'
-                lower = row['Open']
-                height = row['Close'] - row['Open']
-            else:
-                color = 'red'
-                lower = row['Close']
-                height = row['Open'] - row['Close']
-            
-            # Draw high and low lines (wicks) outside the rectangle
-            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
-            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
-            
-            # Draw the rectangle (candlestick body)
-            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
+        # Convert data to JSON in order to send to the frontend
+        result = {
+            'historical_data': {
+                'dates': self.data.index.strftime('%Y-%m-%d').tolist(),
+                'close': self.data.tolist(),
+                'open': self.open.tolist(),
+                'high': self.high.tolist(),
+                'low': self.low.tolist(),
+                'volume': self.volume.tolist(),
+            },
+            'forecasted_data': {
+                'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
+                'forecast_prices': forecast_prices.tolist(),
+            }
+        }
         
-        # Plot the price data
-        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
-        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
-        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
-        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
-        ax1.grid(True, alpha = 0.3)
-
-        # Plot the last validation split predictions if available
-        if self.show_backtest:
-            if self.last_val_predictions is not None and self.last_val_index is not None:
-                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
-
-        ax1.legend(loc='upper left')
-        # Plot the volume data
-        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
-        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
-        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
-        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
-        ax2.grid(True, alpha = 0.3)
-        
-        # Save plot to a bytes buffer
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        plot_data = base64.b64encode(buf.read()).decode('utf-8')
-        buf.close()
-        #plt.show()
-        plt.close(fig)  # Close the plot to free up resources
-
-        return plot_data
+        return result
     
 class UCM_model(Model):    
     def __init__(self, data, symbol_name):
@@ -1062,66 +852,23 @@ class UCM_model(Model):
         # Plot the data
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=forecast_days, freq='D')
-        # Create figure and axis
-        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
-
-        # Create candlestick data
-        candlestick_data = pd.DataFrame({
-            'Date': self.data.index,
-            'Open': self.open,
-            'Close': self.data,
-            'High': self.high,
-            'Low': self.low
-        })
-        # Plot the candlestick data with decreased transparency
-        for idx, row in candlestick_data.iterrows():
-            date_num = mdates.date2num(row['Date'])
-            if row['Close'] >= row['Open']:
-                color = 'green'
-                lower = row['Open']
-                height = row['Close'] - row['Open']
-            else:
-                color = 'red'
-                lower = row['Close']
-                height = row['Open'] - row['Close']
-            
-            # Draw high and low lines (wicks) outside the rectangle
-            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
-            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
-            
-            # Draw the rectangle (candlestick body)
-            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
+        # Convert data to JSON in order to send to the frontend
+        result = {
+            'historical_data': {
+                'dates': self.data.index.strftime('%Y-%m-%d').tolist(),
+                'close': self.data.tolist(),
+                'open': self.open.tolist(),
+                'high': self.high.tolist(),
+                'low': self.low.tolist(),
+                'volume': self.volume.tolist(),
+            },
+            'forecasted_data': {
+                'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
+                'forecast_prices': forecast_prices.tolist(),
+            }
+        }
         
-        # Plot the price data
-        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
-        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
-        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
-        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
-        ax1.grid(True, alpha = 0.3)
-
-        # Plot the last validation split predictions if available
-        if self.show_backtest:
-            if self.last_val_predictions is not None and self.last_val_index is not None:
-                ax1.plot(self.data.index[self.last_val_index], self.last_val_predictions, label='Backtest Predictions', color='dimgray', linewidth=1.5, linestyle='-')
-
-        ax1.legend(loc='upper left')
-        # Plot the volume data
-        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
-        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
-        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
-        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
-        ax2.grid(True, alpha = 0.3)
-        
-        # Save plot to a bytes buffer
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        plot_data = base64.b64encode(buf.read()).decode('utf-8')
-        buf.close()
-        #plt.show()
-        plt.close(fig)  # Close the plot to free up resources
-
-        return plot_data
+        return result
     
 class AI_model(Model):
     def __init__(self, data, symbol_name):
@@ -1190,58 +937,20 @@ class AI_model(Model):
         forecast_prices = self.adjust_forecast_prices(forecast_prices)
         # Create date range for forecasted data
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=len(forecast_prices), freq='D')    
-        # Create figure and axis
-        fig, (ax1, ax2) = plt.subplots(nrows=2, sharex=True, figsize=(16, 8), gridspec_kw={'height_ratios': [3, 1]})
-
-        # Create candlestick data
-        candlestick_data = pd.DataFrame({
-            'Date': self.data.index,
-            'Open': self.open,
-            'Close': self.data,
-            'High': self.high,
-            'Low': self.low
-        })
-        # Plot the candlestick data with decreased transparency
-        for idx, row in candlestick_data.iterrows():
-            date_num = mdates.date2num(row['Date'])
-            if row['Close'] >= row['Open']:
-                color = 'green'
-                lower = row['Open']
-                height = row['Close'] - row['Open']
-            else:
-                color = 'red'
-                lower = row['Close']
-                height = row['Open'] - row['Close']
-            
-            # Draw high and low lines (wicks) outside the rectangle
-            ax1.vlines(date_num, row['Low'], lower, color=color, alpha=0.5, linewidth=0.5)
-            ax1.vlines(date_num, lower + height, row['High'], color=color, alpha=0.5, linewidth=0.5)
-            
-            # Draw the rectangle (candlestick body)
-            ax1.add_patch(mpatches.Rectangle((date_num - 0.5, lower), 1, height, edgecolor=color, facecolor=color, alpha=1, linewidth=1))
+        # Convert data to JSON in order to send to the frontend
+        result = {
+            'historical_data': {
+                'dates': self.data.index.strftime('%Y-%m-%d').tolist(),
+                'close': self.data.tolist(),
+                'open': self.open.tolist(),
+                'high': self.high.tolist(),
+                'low': self.low.tolist(),
+                'volume': self.volume.tolist(),
+            },
+            'forecasted_data': {
+                'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
+                'forecast_prices': forecast_prices,
+            }
+        }
         
-        # Plot the price data
-        ax1.plot(self.data.index, self.data, label='Historical Data', color='gray', linewidth=1, alpha=0.6)
-        ax1.plot(forecast_dates, forecast_prices, label='Forecasted Prices', color='black', linewidth=1.5, linestyle = '-')
-        ax1.set_title(f'Model: {self.model_type} \n Symbol: {self.symbol_name}', weight = 'bold', fontsize = 16)
-        ax1.set_ylabel('Price', weight = 'bold', fontsize = 15)
-        ax1.grid(True, alpha = 0.3)
-        ax1.legend(loc='upper left')
-
-        # Plot the volume data
-        volume_colors = np.where(self.data.diff() >= 0, 'green', 'red')
-        ax2.bar(self.data.index, self.volume, color=volume_colors, alpha=0.6)
-        ax2.set_ylabel('Volume', weight = 'bold', fontsize = 15)
-        ax2.set_xlabel('Time', weight = 'bold', fontsize = 15)
-        ax2.grid(True, alpha = 0.3)
-        
-        # Save plot to a bytes buffer
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        plot_data = base64.b64encode(buf.read()).decode('utf-8')
-        buf.close()
-        #plt.show()
-        plt.close(fig)  # Close the plot to free up resources
-
-        return plot_data
+        return result
