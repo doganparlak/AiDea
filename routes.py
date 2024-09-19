@@ -47,7 +47,7 @@ def send_email(receiver_email, temporary_password,
             f"We have generated a temporary password for you to reset your account password:\n\n"
             f"Temporary Password: {temporary_password}\n\n"
             f"For your security, please do not share this password with anyone. "
-            f"If you did not request this reset, please contact our support team immediately.\n\n"
+            f"If you did not request this reset, please ignore this message.\n\n"
             f"Thank you for your attention.\n\n"
             f"Best regards,\n\n"
             f"AiDea Support Team")
