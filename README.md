@@ -27,6 +27,7 @@ In **models.py**, you’ll find the implementation of various financial models u
 - **ARCH** (Autoregressive Conditional Heteroskedasticity)
 - **UCM** (Unobserved Components Model)
 - **SARIMA** (Seasonal Autoregressive Integrated Moving Average)
+- **AI** (Artificial Intelligence)
 
 ### 5. **routes.py**
 The **routes.py** file manages the communication between the frontend and backend of the application. It defines routes and handlers, ensuring that user interactions are processed and reflected in the web application efficiently.
