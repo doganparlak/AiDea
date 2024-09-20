@@ -9,11 +9,13 @@
             display: flex;
             flex-direction: row;
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212; /* Dark background */
+            color: #f0f0f0;
         }
         .sidebar {
             width: 15%;
-            background-color: #333;
+            background-color: #1f1f1f; /* Match dark theme */
             color: white;
             padding: 1rem;
             box-sizing: border-box;
@@ -38,7 +40,7 @@
         }
         .sidebar a:hover,
         .sidebar a.active {
-            background-color: #575757;
+            background-color: #575757; /* Dark hover effect */
         }
         .sidebar .logout {
             text-align: center;
@@ -49,14 +51,14 @@
             font-size: 1.2rem;
             border-radius: 0.25rem;
             display: block;
-            margin-top: 47rem; /* Adjusted margin */
+            margin-top: 47rem; /* Align to bottom */
         }
         .sidebar .logout:hover {
             background-color: #c9302c;
         }
         .main-content {
             margin-left: 15%;
-            padding: 1rem;
+            padding: 2rem;
             box-sizing: border-box;
             width: 85%;
         }
@@ -66,16 +68,17 @@
             gap: 2rem;
         }
         .model-section {
-            border: 1px solid #ccc;
+            border: 1px solid #444; /* Darker border */
             border-radius: 0.5rem;
             padding: 1rem;
-            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
-            background-color: #f9f9f9;
+            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.3); /* Darker shadow */
+            background-color: #1f1f1f; /* Match section background */
         }
         .model-section h3 {
             margin-top: 0;
-            border-bottom: 1px solid #ccc;
+            border-bottom: 1px solid #444; /* Darker border */
             padding-bottom: 0.5rem;
+            color: #c9302c; /* Keep the highlighted color */
         }
         .model-section p {
             margin: 0;
@@ -94,8 +97,8 @@
     <div class="main-content">
         <div class="about-models-container">
             <div class="model-section">
-                <h3 style="color: #c9302c;">Common Approach</h3>
-                <p> The models consist of parameters that are meticulously calibrated to align with the historical price data provided. 
+                <h3>Common Approach</h3>
+                <p>The models consist of parameters that are meticulously calibrated to align with the historical price data provided. 
                     For each model, the algorithm is designed to capture patterns within the historical data that yield the most accurate forecasts, as determined by backtesting results.
                     The AR and ARIMA models utilize grid search for parameter tuning, while the Tree-Structured Parzen Estimator, a form of Bayesian optimization, is employed for HWES, ARCH, UCM, and SARIMA models. 
                     Time series splitting is implemented to facilitate backtesting and optimize hyperparameters. Stationarity is assessed using the Augmented Dickey-Fuller (ADF) test, and if necessary, log transformation is applied to stabilize variance.
@@ -106,70 +109,213 @@
             <div class="model-section">
                 <h3>AR (Autoregressive) Model</h3>
                 <p>The AR model predicts future values based on a linear function of previous values in the time series. It assumes that the current value of the series can be explained by a linear combination of its past values. This model is useful for time series data that exhibit autocorrelation.
-                    The parameters tuned in this model include <span style="color: #c9302c;">trend</span>, and <span style="color: #c9302c;">lags</span>.
+                   The parameters tuned in this model include <span style="color: #c9302c;">trend</span> and <span style="color: #c9302c;">lags</span>.
+
+                   <br><br>
+                   The AR model is defined by the equation:
+
+                   <blockquote>
+                        <em>X<sub>t</sub> = c + &phi;<sub>1</sub>X<sub>t-1</sub> + &phi;<sub>2</sub>X<sub>t-2</sub> + ... + &phi;<sub>p</sub>X<sub>t-p</sub> + &epsilon;<sub>t</sub></em>
+                   </blockquote>
+
+                    where:
+                    <ul>
+                        <li><strong>X<sub>t</sub>:</strong> The value of the time series at time <em>t</em>.</li>
+                        <li><strong>c:</strong> A constant term.</li>
+                        <li><strong>&phi;<sub>i</sub>:</strong> The coefficients of the lagged values.</li>
+                        <li><strong>&epsilon;<sub>t</sub>:</strong> The error term at time <em>t</em>.</li>
+                    </ul>
+
+                    <br>
+                    The choice of <span style="color: #c9302c;">lags</span> is crucial, as it determines how many previous observations are included in the model. 
+                    The AR model is particularly effective when the data show a consistent pattern over time, making it a popular choice in financial forecasting and economic modeling.
                 </p>
             </div>
             <div class="model-section">
                 <h3>ARIMA (Autoregressive Integrated Moving Average) Model</h3>
-                <p>The ARIMA model combines the AR model with differencing (to make the time series stationary) and a moving average component. 
-                    It is used for time series data that show trends and seasonality. ARIMA models are suitable for series where the past values have a linear relationship with future values and the series exhibits non-stationarity.
-                    The parameters tuned are <span style="color: #c9302c;">trend</span>, and order of the model for the autoregressive, differences, and moving average components 
-                    (<span style="color: #c9302c;">p</span>,<span style="color: #c9302c;">d</span>,<span style="color: #c9302c;">q</span>).
+                <p>
+                    The ARIMA model combines the AR model with differencing (to make the time series stationary) and a moving average component. It is used for time series data that show trends and seasonality. ARIMA models are suitable for series where the past values have a linear relationship with future values and the series exhibits non-stationarity. The parameters tuned are 
+                    <span style="color: #c9302c;">trend</span> and the order of the model for the autoregressive, differencing, and moving average components 
+                    (<span style="color: #c9302c;">p</span>, <span style="color: #c9302c;">d</span>, <span style="color: #c9302c;">q</span>).
+            
+                    <br><br>
+                    The ARIMA model is defined by three main parameters:
+                    <ul>
+                        <li><strong>p:</strong> The number of lag observations included in the model (autoregressive part).</li>
+                        <li><strong>d:</strong> The number of times that the raw observations are differenced (integrated part).</li>
+                        <li><strong>q:</strong> The size of the moving average window (moving average part).</li>
+                    </ul>
+            
+                    <br>
+                    The ARIMA model is often denoted as ARIMA(<span style="color: #c9302c;">p</span>, <span style="color: #c9302c;">d</span>, <span style="color: #c9302c;">q</span>).
+                        
+                    <br><br>
+                    ARIMA models are particularly powerful for forecasting in economic and financial contexts where understanding trends and cycles is crucial, making them a popular choice for time series analysis.
                 </p>
-            </div>
+            </div>            
             <div class="model-section">
-                <h3>HWES (Holt-Winters Exponential Smoothing) </h3>
-                <p>The Holt-Winters Exponential Smoothing method is used for forecasting time series data that exhibits both trend and seasonality. 
-                   It extends exponential smoothing by adding components for both trend and seasonal variations, making it effective for data with seasonal patterns.
-                   The parameters tuned include <span style="color: #c9302c;">trend</span>, the type of seasonal component <span style="color: #c9302c;">seasonal</span>, 
-                   the number of periods in a complete seasonal cycle <span style="color: #c9302c;">seasonal_periods</span>, method for initialize the recursions 
-                   <span style="color: #c9302c;">initialization_method</span>, and the application of Box-Cox transform <span style="color: #c9302c;">use_boxcox</span>.
-
-                </p>
-            </div>
-            <div class="model-section">
-                <h3>ARCH (Autoregressive Conditional Heteroskedasticity) Model</h3>
-                <p>The ARCH model is designed for time series with changing volatility over time, such as financial data. 
-                    It models the volatility (variance) of the series and is useful for forecasting future volatility based on past data, making it valuable in risk management and financial forecasting.
-                    The parameters tuned are <span style="color: #c9302c;">lags</span>, name of the volatility model <span style="color: #c9302c;">vol</span>, 
-                    name of the mean model <span style="color: #c9302c;">mean</span>, lag order of the symmetric <span style="color: #c9302c;">p</span>, and asymmetric innovations 
-                    <span style="color: #c9302c;">q</span>. 
-                </p>
-            </div>
-            <div class="model-section">
-                <h3>UCM (Unobserved Components Model) Model</h3>
-                <p><p>The UCM (Unobserved Components Model) is an adaptable framework that decomposes a time series into latent components, including trend, seasonal, and cyclical patterns.
-                     Its effectiveness in capturing complex underlying structures makes it exceptionally suited for diverse forecasting tasks. 
-                     The tuned parameters encompass <span style="color: #c9302c;">trend</span>, the inclusion of the level component <span style="color: #c9302c;">level</span>, 
-                     the periodicity of the seasonal component <span style="color: #c9302c;">seasonal</span>, the application of the cycle component <span style="color: #c9302c;">cycle</span>,
-                     whether the cycle component is damped <span style="color: #c9302c;">damped cycle</span>, the incorporation of the irregular component <span style="color: #c9302c;">irregular</span>,
-                     and the order of the autoregressive component <span style="color: #c9302c;">autoregressive</span>.</p>
-
-                </p>
-            </div>
-            <div class="model-section">
-                <h3>SARIMA (Seasonal Autoregressive Integrated Moving Average) Model</h3>
-                <p>The SARIMA model extends ARIMA by incorporating seasonal effects into the forecasting process. 
-                    It includes seasonal differencing and seasonal autoregressive and moving average components. 
-                    SARIMA is ideal for time series data that exhibit clear seasonal patterns.
-                    The parameters tuned are <span style="color: #c9302c;">trend</span>, 
-                    order of the model for the autoregressive, differences, and moving average components 
-                    (<span style="color: #c9302c;">p</span>,<span style="color: #c9302c;">d</span>,<span style="color: #c9302c;">q</span>),
-                    order of the seasonal component of the model for the autoregressive, differences, moving average parameters, and periodicity
-                    (<span style="color: #c9302c;">P</span>,<span style="color: #c9302c;">D</span>,<span style="color: #c9302c;">Q</span>
-                    <span style="color: #c9302c;">s</span>).
-                </p>
-            </div>
-            <div class="model-section">
-                <h3>AI (Artificial Intelligence) Model</h3>
-                <p>The AI model leverages OpenAI's advanced GPT architecture to forecast future prices of a given symbol by analyzing historical market data. 
-                    As a Large Language Model trained on vast datasets, it inherently selects the optimal approach to forecast price movements, capturing complex, non-linear patterns in the data. 
-                    The <span style="color: #c9302c;">temperature</span> parameter is optimized to ensure the model focuses on exploiting learned patterns, providing consistent and reliable predictions. 
-                    This setup allows the model to prioritize the most likely outcomes, delivering accurate and stable forecasts that reflect recent market trends.
+                <h3>HWES (Holt-Winters Exponential Smoothing) Model</h3>
+                <p>
+                    The Holt-Winters Exponential Smoothing method is used for forecasting time series data that exhibits both trend and seasonality. It extends exponential smoothing by adding components for both trend and seasonal variations, making it effective for data with seasonal patterns. The parameters tuned include 
+                    <span style="color: #c9302c;">trend</span>, the type of seasonal component <span style="color: #c9302c;">seasonal</span>, 
+                    the number of periods in a complete seasonal cycle <span style="color: #c9302c;">seasonal_periods</span>, method for initializing the recursions 
+                    <span style="color: #c9302c;">initialization_method</span>, and the application of Box-Cox transform <span style="color: #c9302c;">use_boxcox</span>.
+            
+                    <br><br>
+                    The HWES model can be divided into two main types:
+                    <ul>
+                        <li><strong>Additive:</strong> Suitable for data where the seasonal variations are roughly constant throughout the series.</li>
+                        <li><strong>Multiplicative:</strong> Suitable for data where seasonal variations increase or decrease proportional to the level of the series.</li>
+                    </ul>
+            
+                    <br>
+                    The model is defined as follows:
+                    <ul>
+                        <li><strong>Level:</strong> The smoothed estimate of the series.</li>
+                        <li><strong>Trend:</strong> The estimate of the trend component.</li>
+                        <li><strong>Seasonal:</strong> The seasonal component adjusted at each time point.</li>
+                    </ul>
+                    <br>
+                    The application of the Box-Cox transformation can help stabilize variance and make the data more homoscedastic, which is particularly beneficial when dealing with seasonal effects.
                 </p>
             </div>
             
+            <div class="model-section">
+                <h3>ARCH (Autoregressive Conditional Heteroskedasticity) Model</h3>
+                <p>
+                    The ARCH model is designed for time series with changing volatility over time, such as financial data. It models the volatility (variance) of the series and is useful for forecasting future volatility based on past data, making it valuable in risk management and financial forecasting. The parameters tuned are 
+                    <span style="color: #c9302c;">lags</span>, name of the volatility model <span style="color: #c9302c;">vol</span>, 
+                    name of the mean model <span style="color: #c9302c;">mean</span>, lag order of the symmetric <span style="color: #c9302c;">p</span>, and asymmetric innovations 
+                    <span style="color: #c9302c;">q</span>.
+            
+                    <br><br>
+                    The ARCH model assumes that the current volatility is a function of past squared observations, meaning that larger shocks to the series lead to greater volatility. This characteristic makes the ARCH model particularly useful for financial markets where periods of high volatility tend to be followed by high volatility (and vice versa).
+            
+                    <br><br>
+                    Overall, the ARCH model provides a robust framework for modeling and forecasting time series data characterized by volatility clustering, enabling better decision-making in financial contexts.
+                </p>
+            </div>
+            
+            <div class="model-section">
+                <h3>UCM (Unobserved Components Model)</h3>
+                <p>
+                    The UCM (Unobserved Components Model) is an adaptable framework that decomposes a time series into latent components, including trend, seasonal, and cyclical patterns. Its effectiveness in capturing complex underlying structures makes it exceptionally suited for diverse forecasting tasks. The tuned parameters encompass 
+                    <span style="color: #c9302c;">trend</span>, the inclusion of the level component <span style="color: #c9302c;">level</span>, 
+                    the periodicity of the seasonal component <span style="color: #c9302c;">seasonal</span>, the application of the cycle component <span style="color: #c9302c;">cycle</span>,
+                    whether the cycle component is damped <span style="color: #c9302c;">damped cycle</span>, the incorporation of the irregular component <span style="color: #c9302c;">irregular</span>,
+                    and the order of the autoregressive component <span style="color: #c9302c;">autoregressive</span>.
+            
+                    <br><br>
+                    This model is particularly useful for datasets that exhibit non-linear patterns or irregular fluctuations that are not easily captured by traditional linear models.
+            
+                    <br>
+                    Key advantages of the UCM include:
+                    <ul>
+                        <li><strong>Decomposition:</strong> Offers insights into the underlying factors driving the observed time series.</li>
+                        <li><strong>Customizability:</strong> Tailors the model structure to best fit the specific characteristics of the data.</li>
+                        <li><strong>Forecasting:</strong> Enhances forecasting accuracy by explicitly modeling components that may affect future values.</li>
+                    </ul>
+            
+                    <br>Its capacity to isolate and analyze trends, seasonal variations, and cyclical movements allows for a comprehensive understanding of the time series at hand.
+            
+                    <br><br>
+                    In summary, the UCM offers a robust framework for time series analysis, enabling practitioners to model complex phenomena while providing actionable insights into the components influencing their data.
+                </p>
+            </div>
+            
+
+            <div class="model-section">
+                <h3>SARIMA (Seasonal Autoregressive Integrated Moving Average) Model</h3>
+                <p>
+                    The SARIMA model extends ARIMA by incorporating seasonal effects into the forecasting process. It includes seasonal differencing and seasonal autoregressive and moving average components, making it well-suited for time series data that exhibit clear seasonal patterns. 
+                    The parameters tuned are 
+                    <span style="color: #c9302c;">trend</span>, 
+                    order of the model for the autoregressive, differences, and moving average components 
+                    (<span style="color: #c9302c;">p</span>, <span style="color: #c9302c;">d</span>, <span style="color: #c9302c;">q</span>),
+                    as well as the order of the seasonal component of the model for the autoregressive, differences, moving average parameters, and periodicity
+                    (<span style="color: #c9302c;">P</span>, <span style="color: #c9302c;">D</span>, <span style="color: #c9302c;">Q</span>, <span style="color: #c9302c;">s</span>).
+            
+                    <br><br>
+                    SARIMA is particularly effective for time series data where seasonal trends are pronounced, such as monthly sales figures, temperature variations, or any cyclic phenomenon. By modeling both non-seasonal and seasonal factors, SARIMA can capture the dynamics of the data more comprehensively.
+            
+                    <br>
+                    Key advantages of SARIMA include:
+                    <ul>
+                        <li><strong>Seasonal Adjustment:</strong> Accurately accounts for seasonal variations, improving forecast accuracy.</li>
+                        <li><strong>Flexibility:</strong> Allows users to customize the model according to the seasonal patterns of their data.</li>
+                        <li><strong>Enhanced Predictions:</strong> Combines both autoregressive and moving average components, leading to more robust forecasts.</li>
+                    </ul>
+            
+                    <br>
+                    In short, SARIMA provides a powerful tool for forecasting time series data with seasonal characteristics, offering a sophisticated approach to understanding and predicting patterns over time.
+                </p>
+            </div>
+            
+
+            <div class="model-section">
+                <h3>AI (Artificial Intelligence) Model</h3>
+                <p>
+                    The AI model leverages OpenAI's advanced GPT architecture to forecast future prices of a given symbol by analyzing historical market data. As a Large Language Model trained on vast datasets, it inherently selects the optimal approach to forecast price movements, capturing complex, non-linear patterns in the data.
+                    The <span style="color: #c9302c;">temperature</span> parameter is optimized to ensure the model focuses on exploiting learned patterns, providing consistent and reliable predictions. This setup allows the model to prioritize the most likely outcomes, delivering accurate and stable forecasts that reflect recent market trends.
+            
+                    <br><br>
+                    Key features of the AI model include:
+                    <ul>
+                        <li><strong>Adaptability:</strong> Capable of adjusting to new data and trends, ensuring forecasts remain relevant and up-to-date.</li>
+                        <li><strong>Complex Pattern Recognition:</strong> Utilizes deep learning techniques to identify intricate relationships within the data that traditional models may overlook.</li>
+                        
+                    </ul>
+            
+                    <br>
+                    In conclusion, the AI model represents a cutting-edge approach to financial forecasting, harnessing the power of advanced machine learning to deliver precise and actionable insights based on historical market trends.
+                </p>
+            </div>
         </div>
+        <div class="license-section">
+            <h3>License</h3>
+            <p>This application utilizes <strong>Statsmodels</strong> <strong>Arch</strong>, which is open-source software for statistical modeling in Python.</p>
+            <pre style="text-align: left; font-size: 0.7rem;">
+        1. Copyright (C) 2006, Jonathan E. Taylor
+           Copyright (c) 2006-2008 Scipy Developers
+           Copyright (c) 2009-2018 statsmodels Developers
+        
+           Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+        
+           a. Redistributions of source code must retain the above copyright notice, this list of conditions, and the following disclaimer.
+           b. Redistributions in binary form must reproduce the above copyright notice, this list of conditions,
+           and the following disclaimer in the documentation and/or other materials provided with the distribution.
+           c. Neither the name of statsmodels nor the names of its contributors may be used to endorse or 
+           promote products derived from this software without specific prior written permission.
+        
+           THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, 
+           BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+           IN NO EVENT SHALL STATSMODELS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+           BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+           WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+        
+        2. Copyright (c) 2017 Kevin Sheppard. All rights reserved.
+        
+           Developed by: Kevin Sheppard (kevin.sheppard@economics.ox.ac.uk,
+           kevin.k.sheppard@gmail.com) https://www.kevinsheppard.com
+        
+           Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
+           to deal with the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+           and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+        
+           a. Redistributions of source code must retain the above copyright notice, this list of conditions, and the following disclaimers.
+        
+           b. Redistributions in binary form must reproduce the above copyright notice, this list of conditions, and 
+           the following disclaimers in the documentation and/or other materials provided with the distribution.
+        
+           c. Neither the names of Kevin Sheppard, nor the names of its contributors may be used to endorse or 
+           promote products derived from this Software without specific prior written permission.
+        
+           THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+           FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+           WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
+            </pre>
+        </div>
+        
     </div>
 </body>
 </html>

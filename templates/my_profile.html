@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile</title>
+    <title>Fin-AiDea - My Profile</title>
     <style>
         body {
             display: flex;
             flex-direction: row;
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212; /* Dark background */
+            color: #f0f0f0;
         }
         .sidebar {
             width: 15%;
-            background-color: #333;
+            background-color: #1f1f1f; /* Match dark theme */
             color: white;
             padding: 1rem;
             box-sizing: border-box;
@@ -38,7 +40,7 @@
         }
         .sidebar a:hover,
         .sidebar a.active {
-            background-color: #575757;
+            background-color: #575757; /* Dark hover effect */
         }
         .sidebar .logout {
             text-align: center;
@@ -49,7 +51,7 @@
             font-size: 1.2rem;
             border-radius: 0.25rem;
             display: block;
-            margin-top: 47rem; /* Adjusted margin */
+            margin-top: 47rem; /* Align to bottom */
         }
         .sidebar .logout:hover {
             background-color: #c9302c;
@@ -62,16 +64,17 @@
         }
         .profile-section {
             margin-bottom: 2rem;
-            border: 1px solid #ccc;
+            border: 1px solid #444; /* Darker border */
             border-radius: 0.5rem;
             padding: 1rem;
-            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
-            background-color: #f9f9f9;
+            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.3); /* Darker shadow */
+            background-color: #1f1f1f; /* Match section background */
         }
         .profile-section h3 {
             margin-top: 0;
-            border-bottom: 1px solid #ccc;
+            border-bottom: 1px solid #444; /* Darker border */
             padding-bottom: 0.5rem;
+            color: #ffffff;
         }
         .profile-info {
             display: flex;
@@ -115,7 +118,7 @@
             font-size: 1rem; /* Increased font size */
         }
         .upgrade-button:hover, .downgrade-button:hover {
-            background-color: #218838;
+            background-color: #218838; /* Darker hover color */
         }
         .account-type {
             text-transform: uppercase; /* Capitalize account type */
@@ -125,9 +128,11 @@
         }
         .comparison-section h3 {
             margin-top: 0;
-            border-bottom: 1px solid #ccc;
+            border-bottom: 1px solid #444; /* Darker border */
             padding-bottom: 0.5rem;
             font-size: 1.5rem;
+            text-align: center;
+            color: #ffffff;
         }
         .table-container {
             display: flex;
@@ -138,6 +143,9 @@
             width: 30%; /* Each table takes up 30% of the container width */
             border-collapse: collapse;
             margin-right: 1rem; /* Space between tables */
+            background-color: #1f1f1f; /* Match table background */
+            border-radius: 0.5rem; /* Rounded corners */
+            overflow: hidden; /* Prevent border-radius from affecting the inner elements */
         }
         .table-container table:last-child {
             margin-right: 0; /* Remove margin for the last table */
@@ -145,10 +153,11 @@
         .comparison-table th, .comparison-table td {
             padding: 1rem;
             text-align: center;
-            border: 1px solid #ccc;
+            border: 1px solid #444; /* Darker border */
+            color: #f0f0f0; /* Light text color */
         }
         .comparison-table th {
-            background-color: #f2f2f2;
+            background-color: #333; /* Dark header background */
         }
         .check, .cross {
             text-align: center;
@@ -198,7 +207,7 @@
             </div>
         </div>
         <div class="comparison-section">
-            <h3 style="text-align: center;">Account Type Comparison</h3>
+            <h3>Account Type Comparison</h3>
             <div class="table-container">
                 <table class="comparison-table">
                     <thead>
