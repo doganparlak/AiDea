@@ -610,7 +610,7 @@
             }
 
              // Hide the initial image and show the loading GIF
-            const initialImage = document.getElementById('initial-image');
+            const initialImage = document.getElementById('initial-canvas');
             const loadingGif = document.getElementById('loading-gif');
             const plotImage = document.getElementById('plot-container');
             toggleVisibility(initialImage, 'none');
@@ -785,6 +785,7 @@
                     modeBarButtons: [['toImage']]}); // Keep only the Download as PNG button
 
                 // Show the plot once it's generated
+                toggleVisibility(initialImage, 'none')
                 toggleVisibility(loadingGif, 'none');
                 toggleVisibility(plotImage, 'block');
             })
