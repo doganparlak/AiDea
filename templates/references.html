@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>References</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: row;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212; /* Dark background */
+            color: #f0f0f0;
+        }
+        .sidebar {
+            width: 15%;
+            background-color: #1f1f1f; /* Match dark theme */
+            color: white;
+            padding: 1rem;
+            box-sizing: border-box;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        .sidebar h2 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 0.5rem;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .sidebar a:hover,
+        .sidebar a.active {
+            background-color: #575757; /* Dark hover effect */
+        }
+        .sidebar .logout {
+            text-align: center;
+            color: white;
+            padding: 0.5rem;
+            background-color: #d9534f;
+            text-decoration: none;
+            font-size: 1.2rem;
+            border-radius: 0.25rem;
+            display: block;
+            margin-top: 43rem; /* Align to bottom */
+        }
+        .sidebar .logout:hover {
+            background-color: #c9302c;
+        }
+        .main-content {
+            margin-left: 15%;
+            padding: 2rem;
+            box-sizing: border-box;
+            width: 85%;
+        }
+        .references-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        .references-section {
+            border: 1px solid #444; /* Darker border */
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.3); /* Darker shadow */
+            background-color: #1f1f1f; /* Match section background */
+        }
+        .references-section h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #444; /* Darker border */
+            padding-bottom: 0.5rem;
+            color: #c9302c; /* Keep the highlighted color */
+        }
+        .references-section p {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        /* Added CSS to ensure left-alignment of <pre> content */
+            pre {
+            margin: 0;
+            padding: 0;
+            font-size: 0.7rem;
+            white-space: pre-wrap; /* To wrap long text */
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <a href="/my_profile">My Profile</a>
+        <a href="/forecaster">Forecaster</a>
+        <a href="/about_models">About Models</a>
+        <a href="/references">References</a>
+        <a href="/logout" class="logout">Log Out</a>
+    </div> 
+    <div class="main-content">
+        <div class="references-container">
+            <div class="references-section">
+                <h3>Statsmodels</h3>
+                <pre>
+    Copyright (C) 2006, Jonathan E. Taylor
+    Copyright (c) 2006-2008 Scipy Developers
+    Copyright (c) 2009-2018 statsmodels Developers
+
+    Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+    a. Redistributions of source code must retain the above copyright notice, this list of conditions, and the following disclaimer.
+    b. Redistributions in binary form must reproduce the above copyright notice, this list of conditions,
+    and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    c. Neither the name of statsmodels nor the names of its contributors may be used to endorse or 
+    promote products derived from this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, 
+    BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+    IN NO EVENT SHALL STATSMODELS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+    BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+    WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+                </pre>
+            </div>
+            <div class="references-section">
+                <h3>Arch</h3>
+                <pre>
+    Copyright (C) 2006, Jonathan E. Taylor
+    Copyright (c) 2006-2008 Scipy Developers
+    Copyright (c) 2009-2018 statsmodels Developers
+    
+    Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+    
+    a. Redistributions of source code must retain the above copyright notice, this list of conditions, and the following disclaimer.
+    b. Redistributions in binary form must reproduce the above copyright notice, this list of conditions,
+    and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    c. Neither the name of statsmodels nor the names of its contributors may be used to endorse or 
+    promote products derived from this software without specific prior written permission.
+    
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, 
+    BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+    IN NO EVENT SHALL STATSMODELS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+    BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+    WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+                </pre>
+            </div>                  
+    </div>
+</body>
+</html>

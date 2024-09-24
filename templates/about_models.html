@@ -51,7 +51,7 @@
             font-size: 1.2rem;
             border-radius: 0.25rem;
             display: block;
-            margin-top: 47rem; /* Align to bottom */
+            margin-top: 43rem; /* Align to bottom */
         }
         .sidebar .logout:hover {
             background-color: #c9302c;
@@ -92,6 +92,7 @@
         <a href="/my_profile">My Profile</a>
         <a href="/forecaster">Forecaster</a>
         <a href="/about_models">About Models</a>
+        <a href="/references">References</a>
         <a href="/logout" class="logout">Log Out</a>
     </div> 
     <div class="main-content">
@@ -104,6 +105,12 @@
                     Time series splitting is implemented to facilitate backtesting and optimize hyperparameters. Stationarity is assessed using the Augmented Dickey-Fuller (ADF) test, and if necessary, log transformation is applied to stabilize variance.
                     Mean Squared Error (MSE) is selected as the loss function, guiding the process of parameter tuning. 
                     Conversely, the AI model differs from the others in that it employs a large language model (LLM), which is fine-tuned using the temperature parameter.
+                    
+                    <ul>
+                        <li><strong>Historical Data Length:</strong> Number of trading days to include when training the models. A week is considered as 7 days, a month as 30 days, and a year as 360 days.</li>
+                        <li><strong>Number of Forecast Days:</strong> The number of days to forecast the future price of the symbol.</li>
+                    </ul> 
+                    
                 </p>
             </div>
             <div class="model-section">
@@ -269,53 +276,7 @@
                     <br>
                     In conclusion, the AI model represents a cutting-edge approach to financial forecasting, harnessing the power of advanced machine learning to deliver precise and actionable insights based on historical market trends.
                 </p>
-            </div>
-        </div>
-        <div class="license-section">
-            <h3>License</h3>
-            <p>This application utilizes <strong>Statsmodels</strong> <strong>Arch</strong>, which is open-source software for statistical modeling in Python.</p>
-            <pre style="text-align: left; font-size: 0.7rem;">
-        1. Copyright (C) 2006, Jonathan E. Taylor
-           Copyright (c) 2006-2008 Scipy Developers
-           Copyright (c) 2009-2018 statsmodels Developers
-        
-           Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-        
-           a. Redistributions of source code must retain the above copyright notice, this list of conditions, and the following disclaimer.
-           b. Redistributions in binary form must reproduce the above copyright notice, this list of conditions,
-           and the following disclaimer in the documentation and/or other materials provided with the distribution.
-           c. Neither the name of statsmodels nor the names of its contributors may be used to endorse or 
-           promote products derived from this software without specific prior written permission.
-        
-           THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, 
-           BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
-           IN NO EVENT SHALL STATSMODELS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-           BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-           WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-        
-        2. Copyright (c) 2017 Kevin Sheppard. All rights reserved.
-        
-           Developed by: Kevin Sheppard (kevin.sheppard@economics.ox.ac.uk,
-           kevin.k.sheppard@gmail.com) https://www.kevinsheppard.com
-        
-           Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
-           to deal with the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-           and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-        
-           a. Redistributions of source code must retain the above copyright notice, this list of conditions, and the following disclaimers.
-        
-           b. Redistributions in binary form must reproduce the above copyright notice, this list of conditions, and 
-           the following disclaimers in the documentation and/or other materials provided with the distribution.
-        
-           c. Neither the names of Kevin Sheppard, nor the names of its contributors may be used to endorse or 
-           promote products derived from this Software without specific prior written permission.
-        
-           THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-           FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-           WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.
-            </pre>
-        </div>
-        
+            </div>        
     </div>
 </body>
 </html>

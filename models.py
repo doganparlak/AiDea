@@ -363,7 +363,7 @@ class SARIMA_model(Model):
                     best_val_index = val_index
             except Exception as e:
                 return float('inf')  # Return a very low value if an error occurs
-
+            
         avg_mse = mse_sum / n_splits
         if avg_mse<best_mse:
             # Store the best predictions and index within the trial object for later retrieval
@@ -390,7 +390,7 @@ class SARIMA_model(Model):
                 trial.set_user_attr("best_mse", initial_best_mse)
                 return self.objective(trial)
 
-            study.optimize(objective_with_initial_best_mse, n_trials=30)  # Number of trials can be adjusted
+            study.optimize(objective_with_initial_best_mse, n_trials=20)  # Number of trials can be adjusted
 
 
             best_params = study.best_params
@@ -612,12 +612,11 @@ class ARCH_model(Model):
         min_lag = 1
         max_lag = int(np.sqrt(len(self.data))) if len(self.data) >= 20 else len(self.data) // 2  # Ensure a practical upper bound for small datasets
         lags = trial.suggest_int('lags', min_lag, max_lag)
-        p = trial.suggest_int('p', 1, 5)
-        q = trial.suggest_int('q', 1, 5)
+        p = trial.suggest_int('p', 2, 6)
+        q = trial.suggest_int('q', 2, 6)
         vol = trial.suggest_categorical('vol', ['GARCH', 'ARCH', 'EGARCH', 'FIGARCH', 
                                                 'APARCH', 'HARCH'])
-        mean = trial.suggest_categorical('mean', ['LS', 'AR', 
-                                                  'ARX', 'HAR', 'HARX'])
+        mean = trial.suggest_categorical('mean', ['LS', 'ARX', 'HAR', 'HARX'])
         mse_sum = 0
         n_splits = 2
         best_val_predictions = None
@@ -675,7 +674,6 @@ class ARCH_model(Model):
 
             best_params = study.best_params
             best_mse = study.best_value  # Access custom attributes returned from objective function
-
             # Retrieve the best trial
             best_trial = study.best_trial
 

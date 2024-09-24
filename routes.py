@@ -176,7 +176,7 @@ def init_routes(app):
                 session['account_type'] = user.account_type # Store the account type in the session
                 return jsonify({'message': 'Login successful!', 'redirect': url_for('main'), 'account_type': user.account_type}), 200
             else:
-                return jsonify({'message': 'Invalid credentials'}), 401
+                return jsonify({'message': 'Invalid credentials.'}), 401
             
     @app.route('/signup', methods=['GET', 'POST'])
     def signup():
@@ -187,7 +187,7 @@ def init_routes(app):
         if request.method == 'POST':
             data = request.json
             if not data:
-                return jsonify({'message': 'No data provided'}), 400
+                return jsonify({'message': 'No data provided.'}), 400
             
             email = data.get('email')
             password = data.get('password')
@@ -232,7 +232,7 @@ def init_routes(app):
             send_email(email, temp_password, mail_type= 'Sign-Up')
             
 
-            return jsonify({'message': 'A temporary password for account verification is sent to your email', 'redirect': url_for('account_verification')}), 200
+            return jsonify({'message': 'A temporary password for account verification is sent to your email.', 'redirect': url_for('account_verification')}), 200
 
     @app.route('/account_verification', methods=['GET', 'POST'])
     def account_verification():
@@ -257,7 +257,7 @@ def init_routes(app):
                 except:
                     return jsonify({'message': 'Error creating user.'}), 500
             else:
-                return jsonify({'success': False, 'message': 'Invalid temporary password'})
+                return jsonify({'success': False, 'message': 'Invalid temporary password.'})
 
     @app.route('/request_email', methods=['GET', 'POST'])
     def request_email():
@@ -287,9 +287,9 @@ def init_routes(app):
                 # Store the email in a session to use in forgot password section
                 session['resetEmail'] = email
                 
-                return jsonify({'success': True, 'message': 'Temporary password sent to your email'})
+                return jsonify({'success': True, 'message': 'A temporary password to reset password is sent to your email.'})
             else:
-                return jsonify({'success': False, 'message': 'Email not found'})
+                return jsonify({'success': False, 'message': 'Email not found.'})
 
         return render_template('request_email.html')
 
@@ -342,7 +342,7 @@ def init_routes(app):
             if user:
                 # Check if the new password is different from the current password
                 if check_password_hash(user.password, new_password):
-                    return jsonify({'success': False, 'message': 'New password must be different from the old password'})
+                    return jsonify({'success': False, 'message': 'New password must be different from the old password.'})
                 
                 # Update the password
                 hashed_new_password = generate_password_hash(new_password, method='pbkdf2:sha256')
@@ -350,7 +350,7 @@ def init_routes(app):
                 db.session.commit()
                 return jsonify({'success': True, 'message': 'Password successfully updated. You can now login with your new password.'})
             else:
-                return jsonify({'success': False, 'message': 'User not found'})
+                return jsonify({'success': False, 'message': 'User not found.'})
 
         # Ensure session email is set, otherwise redirect to request_email
         if not session.get('resetEmail'):
@@ -391,12 +391,16 @@ def init_routes(app):
     @app.route('/about_models', methods=['GET', 'POST']) # About Models Button
     def about_models():
         return render_template('about_models.html')
-
+    
+    @app.route('/references', methods=['GET', 'POST']) # References Button
+    def references():
+        return render_template('references.html')
+    
     @app.route('/get_symbols', methods=['GET']) # Getter method to fetch symbols from the users account
     def get_symbols():
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'success': False, 'message': 'User not logged in'}), 401
+            return jsonify({'success': False, 'message': 'User not logged in.'}), 401
 
         symbols = Symbol.query.filter_by(user_id=user_id).all()
         symbol_list = [symbol.name for symbol in symbols]
@@ -407,19 +411,19 @@ def init_routes(app):
     def add_symbol(): # add symbol to the db
         user_id = session.get('user_id')
         if not user_id:
-            return jsonify({'success': False, 'message': 'User not logged in'}), 401
+            return jsonify({'success': False, 'message': 'User not logged in.'}), 401
 
         data = request.json
         symbol_name = data.get('symbol')
         if not symbol_name:
-            return jsonify({'success': False, 'message': 'Symbol name not provided'}), 400
+            return jsonify({'success': False, 'message': 'Symbol name not provided.'}), 400
 
         if not check_symbol_existence(symbol_name):
-            return jsonify({'success': False, 'message': 'Symbol does not exist'}), 404
+            return jsonify({'success': False, 'message': 'Symbol does not exist.'}), 404
 
         existing_symbol = Symbol.query.filter_by(name=symbol_name, user_id=user_id).first()
         if existing_symbol:
-            return jsonify({'success': False, 'message': 'Symbol already added'}), 400
+            return jsonify({'success': False, 'message': 'Symbol already added.'}), 400
         
         new_symbol = Symbol(name=symbol_name, user_id=user_id)
         db.session.add(new_symbol)
@@ -431,7 +435,7 @@ def init_routes(app):
     def delete_symbol(): # delete symbol from the db
         data = request.json
         if not data or 'symbol' not in data:
-            return jsonify({'message': 'Invalid request'}), 400
+            return jsonify({'message': 'Invalid request.'}), 400
 
         symbol_name = data['symbol']
         user_id = session.get('user_id')
@@ -443,7 +447,7 @@ def init_routes(app):
             db.session.commit()
             return jsonify({'success': True}), 200
         else:
-            return jsonify({'message': 'Symbol not found'}), 404
+            return jsonify({'message': 'Symbol not found.'}), 404
         
 
     @app.route('/predict', methods=['GET', 'POST'])
@@ -525,7 +529,7 @@ def init_routes(app):
         if user and user.account_type == 'basic':
             user.account_type = 'premium'
             db.session.commit()
-            print('Upgrade completed')
+            print('Upgrade completed.')
             return '', 204  # Return no content
         else:
             return '', 400  # Bad request if upgrade fails
@@ -541,7 +545,7 @@ def init_routes(app):
         if user and user.account_type == 'premium':
             user.account_type = 'basic'
             db.session.commit()
-            print('Downgrade completed')
+            print('Downgrade completed.')
             return '', 204  # Return no content
         else:
             return '', 400  # Bad request if downgrade fails
