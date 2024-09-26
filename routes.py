@@ -11,7 +11,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from models import create_model
-from tables import db, User, Symbol, TrainedModels, TemporaryPassword
+from tables import db, User, Symbol, TrainedModels, TemporaryPassword, SubscriptionPlan
 
 # Read the configuration file at the top of the script
 def read_settings(file_path):
@@ -149,7 +149,31 @@ def check_symbol_existence(symbol): #check the existence of symbol from yahoo fi
     except Exception as e:
         print(f"Error fetching data for symbol {symbol}: {e}")
         return False
+    
+def get_plan_duration(plan_type):
+    if plan_type == 'monthly':
+        return 30  # 30 days for monthly plan
+    elif plan_type == 'quarterly':
+        return 90  # 90 days for quarterly plan
+    elif plan_type == 'yearly':
+        return 365  # 365 days for yearly plan
+    else:
+        raise ValueError("Invalid plan type")  # Handle unexpected plan types
+def get_plan_amount(plan_type):
+    if plan_type == 'monthly':
+        return 14.99  # 30 days price
+    elif plan_type == 'quarterly':
+        return 39.99  # 90 days price
+    elif plan_type == 'yearly':
+        return 99.99  # 365 days price
+    else:
+        raise ValueError("Invalid plan type")  # Handle unexpected plan types
 
+def process_payment(user, amount):
+    # This is where actual payment processing would happen (e.g., Stripe, PayPal)
+    # For now, simulate a successful payment
+        return True
+    
 def init_routes(app):
     @app.route('/')
     def index():
@@ -168,7 +192,7 @@ def init_routes(app):
             password = data.get('password')
             
             user = User.query.filter_by(email=email).first()
-
+            print(user)
             if user and check_password_hash(user.password, password):
                 # Store user ID in session
                 session['user_id'] = user.id   # Store the id in the session
@@ -518,21 +542,29 @@ def init_routes(app):
             #flash('Account deletion failed.', 'danger')
             return redirect(url_for('my_profile'))
         
-    @app.route('/upgrade_to_premium', methods=['POST'])
-    def upgrade_to_premium():
+    @app.route('/upgrade_to_premium/<plan_type>', methods=['POST'])
+    def upgrade_to_premium(plan_type):
         if 'user_id' not in session:
             return redirect(url_for('login'))
 
         user_id = session['user_id']
-        user = User.query.get(user_id)  # Fetch user by ID
+        user = User.query.get(user_id)
 
-        if user and user.account_type == 'basic':
-            user.account_type = 'premium'
-            db.session.commit()
-            print('Upgrade completed.')
+        if user:
+            amount = get_plan_amount(plan_type)
+            payment_success = process_payment(user, amount)
+            if payment_success:
+                user.account_type = plan_type # Update Account type
+                plan_duration = get_plan_duration(plan_type)  # Get the duration based on plan type
+                if user.subscription_end_date: # Update subscription end date
+                    user.subscription_end_date += timedelta(days=plan_duration)
+                else:
+                    user.subscription_end_date = datetime.now() + timedelta(days=plan_duration)
+                db.session.commit()
             return '', 204  # Return no content
         else:
             return '', 400  # Bad request if upgrade fails
+
 
     @app.route('/downgrade_to_basic', methods=['POST'])
     def downgrade_to_basic():
@@ -540,13 +572,13 @@ def init_routes(app):
             return redirect(url_for('login'))
 
         user_id = session['user_id']
-        user = User.query.get(user_id) # Fetch user by ID
+        user = User.query.get(user_id)
 
-        if user and user.account_type == 'premium':
-            user.account_type = 'basic'
+        if user and user.account_type != 'basic':
+            user.renewal = False  # Stop auto-renewal
             db.session.commit()
-            print('Downgrade completed.')
+            print('Downgrade request submitted. You will be downgraded to basic once your current subscription ends.')
             return '', 204  # Return no content
         else:
             return '', 400  # Bad request if downgrade fails
-    
+

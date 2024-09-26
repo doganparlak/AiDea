@@ -10,7 +10,6 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import r2_score, mean_squared_error
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import warnings
 from itertools import product
 import matplotlib.dates as mdates
@@ -25,7 +24,6 @@ import yaml
 
 # Suppress all warnings from statsmodels
 warnings.filterwarnings("ignore", category=Warning, module='statsmodels')
-plt.switch_backend('Agg') 
 
 def create_model(model_type, data, symbol_name):
     if model_type == 'AR':

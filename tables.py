@@ -8,7 +8,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    account_type = db.Column(db.String(20), nullable=False)  # 'basic' or 'premium'
+    account_type = db.Column(db.String(20), nullable=False)  # 'basic', 'monthly', 'quarterly', 'yearly'
+    subscription_end_date = db.Column(db.DateTime, nullable=True)  # To manage billing cycle
+    renewal = db.Column(db.Boolean, default=True)  # Flag to indicate if the subscription should auto-renew
     symbols = db.relationship('Symbol', backref='user', lazy=True)
 
     def __repr__(self):
@@ -25,7 +27,15 @@ class User(db.Model):
             db.session.rollback()
             print(f"Error occurred: {str(e)}")
     
+class SubscriptionPlan(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(20), nullable=False)  # Plan names like 'monthly', 'quarterly', 'yearly'
+    price = db.Column(db.Float, nullable=False)      # Plan price
+    duration_in_days = db.Column(db.Integer, nullable=False)  # Duration of plan in days
 
+    def __repr__(self):
+        return f'<SubscriptionPlan: {self.name}, Price: {self.price}>'
+    
 class Symbol(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(50), nullable=False, unique=False)
