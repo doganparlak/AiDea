@@ -346,12 +346,12 @@
             <div class="options-container">
                 <select id="model_type">
                     <option value="" disabled selected>Model Name</option>
-                    <option value="AR">AR</option> 
-                    <option value="ARIMA">ARIMA</option> 
-                    <option value="HWES">HWES</option> 
-                    <option value="ARCH">ARCH</option>
-                    <option value="UCM">UCM</option> 
-                    <option value="SARIMA">SARIMA</option> 
+                    <option value="AR">AR</option>
+                    <option value="HWES">HWES</option>  
+                    <option value="ARIMA">ARIMA</option>   
+                    <option value="SARIMA">ARCH</option>
+                    <option value="ARCH">UCM</option> 
+                    <option value="UCM">SARIMA</option> 
                     <option value="AI">AI</option> 
                 </select>
                 <select id="data_length">
@@ -449,7 +449,7 @@
             options.forEach(option => option.disabled = false);
         }
         function filterBasicOptions(modelSelect, dataLengthSelect, forecastDaysSelect) {
-            const premiumModels = ['ARCH', 'UCM', 'SARIMA', 'AI'];
+            const premiumModels = ['ARIMA', 'SARIMA', 'ARCH', 'UCM', 'AI'];
             const premiumDataLengths = ['1_year', '2_years', '3_years', '4_years', '5_years'];
             const premiumForecastDays = ['3_months', '4_months', '5_months', '6_months', '1_year'];
 

@@ -196,7 +196,8 @@
                 <p><strong>Account Type:</strong> <span class="account-type">{{ user.account_type }}</span></p>
                 <div class="info-actions account-type-buttons">
                     {% if user.account_type == 'basic' %}
-                    <form id="upgrade-form" action="/upgrade_to_premium" method="POST">
+                    <p>Premium account only $14.99/month</p> <!-- Add price information here -->
+                    <form id="upgrade-form" action="/payment" method="POST"> <!-- Redirect to payment -->
                         <button type="submit" class="upgrade-button">Upgrade to Premium</button>
                     </form>
                     {% elif user.account_type == 'premium' %}
@@ -205,7 +206,7 @@
                     </form>
                     {% endif %}
                 </div>
-            </div>
+            </div>            
         </div>
         <div class="comparison-section">
             <h3>Account Type Comparison</h3>
@@ -225,27 +226,27 @@
                             <td class="check"></td>
                         </tr>
                         <tr>
-                            <td>ARIMA</td>
-                            <td class="check"></td>
-                            <td class="check"></td>
-                        </tr>
-                        <tr>
                             <td>HWES</td>
                             <td class="check"></td>
                             <td class="check"></td>
                         </tr>
                         <tr>
-                            <td>GARCH</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
-                        </tr>
-                        <tr>
-                            <td>UCM</td>
+                            <td>ARIMA</td>
                             <td class="cross"></td>
                             <td class="check"></td>
                         </tr>
                         <tr>
                             <td>SARIMA</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>ARCH</td>
+                            <td class="cross"></td>
+                            <td class="check"></td>
+                        </tr>
+                        <tr>
+                            <td>UCM</td>
                             <td class="cross"></td>
                             <td class="check"></td>
                         </tr>
@@ -371,7 +372,6 @@
             // Check if the upgrade form exists before adding event listener
             if (upgradeForm) {
                 upgradeForm.addEventListener('submit', function(event) {
-                    console.log('Upgrade form submitted'); // Debugging
                     event.preventDefault();
                     fetch('/upgrade_to_premium', {
                         method: 'POST'
