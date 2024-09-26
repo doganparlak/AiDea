@@ -10,11 +10,13 @@
             display: flex;
             flex-direction: column;
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212; /* Dark background */
+            color: #f0f0f0; /* Light text */
         }
         .sidebar {
             width: 100%;
-            background-color: #333;
+            background-color: #1f1f1f; /* Dark sidebar */
             color: white;
             padding: 1rem;
             box-sizing: border-box;
@@ -34,21 +36,21 @@
             font-size: 1rem;
         }
         .sidebar a:hover {
-            background-color: #575757;
+            background-color: #343a40; /* Darker on hover */
         }
         .sidebar .logout {
             text-align: center;
             color: white;
             padding: 0.5rem;
-            background-color: #d9534f;
+            background-color: #d9534f; /* Logout button */
             text-decoration: none;
             font-size: 1.2rem;
             border-radius: 0.25rem;
             display: block;
-            margin-top: 47rem;
+            margin-top: 43rem;
         }
         .sidebar .logout:hover {
-            background-color: #c9302c;
+            background-color: #c9302c; /* Darker on hover */
         }
         .main-content {
             display: flex;
@@ -65,41 +67,39 @@
             box-sizing: border-box;
             padding: 1rem;
             margin-bottom: 1rem;
+            margin-left:0.25rem;
             width: 100%;
             height: 100%;
-        }
-        .symbol-add-container {
-            border: 0.01rem solid #ccc;
+            background-color: #1f1f1f; /* Dark background for containers */
             border-radius: 0.5rem;
-            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
-            padding: 1rem;
+            border: 0.01rem solid #444; /* Slightly lighter border */
+            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.5); /* Darker shadow */
             height: 42rem;
         }
         .symbol-add-container h3 {
             text-align: center;
             margin: 0 0 1rem 0;
             font-size: 1.6rem;
-            border: 0.01rem solid #ccc;
-            border-radius: 0.5rem;
+            color: #ffffff; /* White text */
         }
         .symbol-input-container {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 1rem;
-            gap: 0.5rem; /* NEW Add some space between the input and the button */
+            margin-bottom: 1rem; /* Adjust margin */
+            gap: 0.5rem;
         }
-        .symbol-input {
+        .symbol-input{
             display: flex;
             align-items: center;
-            border: 0.01rem solid #ccc;
+            border: none; /* Invisible border */
             border-radius: 0.2rem;
             flex: 1;
-            margin-right: 0.1rem;
-            margin-left: 0.1rem;
             max-width: 100%;
-            max-height: 100%;
-            position: relative; /* NEW Ensure positioning context for the button */
+            position: relative;
+        }
+        .symbol-input:focus {
+            border: 0.01rem solid #343a40; /* Change border color on focus */
         }
         .symbol-input input {
             border: none;
@@ -107,22 +107,25 @@
             flex: 1;
             text-align: center;
             font-size: 1.2rem;
+            background-color: #343a40; /* Dark input background */
+            color: #fff; /* Light text */
+            height: 1.5rem;
+            width: 4rem;
+            outline: none; /* Remove blue outline */
         }
         .symbol-input button {
             padding: 0.52rem 0.65rem;
-            background-color: #28a745;
+            background-color: #28a745; /* Button color */
             border: none;
             border-radius: 0.20rem;
             color: white;
             font-size: 0.8rem;
             cursor: pointer;
-            width: auto;
-            height: 3rem;
-            line-height: 1;
+            width: 2.5rem;
+            height: 2.7rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-left: -2rem; /* NEW Space between input and button */
         }
         .symbol-input button::before {
             content: '+';
@@ -132,7 +135,7 @@
             transform-origin: bottom;
         }
         .symbol-input button:hover {
-            background-color: #218838;
+            background-color: #218838; /* Darker on hover */
         }
         .symbol-list {
             display: flex;
@@ -148,59 +151,59 @@
             justify-content: space-between;
             align-items: center;
             padding: 0.5rem;
-            border: 0.01rem solid #ddd;
+            border: 0.01rem solid #444; /* Darker border */
             margin-bottom: 0.5rem;
             border-radius: 0.25rem;
             cursor: pointer;
-            position: relative;
-            height: 1.5rem; /* Set a fixed height for consistency */
-            transition: background-color 0.3s; /* Smooth transition */
+            height: 1.5rem;
+            transition: background-color 0.3s;
         }
         .symbol-list div.selected {
-            background-color: #d0e6f7; /* Highlight color for selected item */
-            border-color: #007bff; /* Highlight border color */
+            background-color: #343a40; /* Highlight color for selected item */
+            border-color: #343a40; /* Highlight border color */
         }
         .symbol-list .symbol-text {
-            flex: 1; /* Take up remaining space */
-            text-align: center; /* Center content vertically */
+            flex: 1;
+            text-align: center;
         }
         .symbol-list button {
-            background-color: #dc3545;
+            background-color: #dc3545; /* Remove color */
             border: none;
             color: white;
             border-radius: 0.25rem;
             padding: 0.3rem 0.8rem;
             cursor: pointer;
             font-size: 1.2rem;
-            height: 175%; /* Ensure the button height matches the symbol box height */
-            align-items: center; /* Center content vertically */
+            height: 2.55rem;
+            align-items: center;
             justify-content: center;
-            margin-right: -0.85rem; /* Remove any margin to ensure it aligns with the right edge */
-            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+            margin-right: -0.85rem;
+            box-sizing: border-box;
             display: flex;
         }
         .symbol-list button:hover {
-            background-color: #c82333;
+            background-color: #c82333; /* Darker on hover */
         }
         .plot-container {
-            width: 60rem; /* Fixed width for the container */
-            height: 42rem; /* Fixed height for the container */
-            border: 0.05rem solid #ccc;
+            width: 60rem;
+            height: 42rem;
+            border: 0.05rem solid #444; /* Darker border */
             border-radius: 0.25rem;
             display: flex;
-            align-items: center; /* Center the content vertically */
-            justify-content: center; /* Center the content horizontally */
+            align-items: center;
+            justify-content: center;
             overflow: hidden;
-            position: relative; /* Ensure correct positioning */
+            position: relative;
+            background-color: #1f1f1f; /* Dark background */
         }
         #plot-container {
-            width: 100%; /* Specific width for the Plotly plot */
-            height: 100%; /* Specific height for the Plotly plot, adjust as needed */
+            width: 100%;
+            height: 100%;
             position: absolute;
             display: flex;
-            top: 2.5%; /* Center the plot vertically */
-            left: 12.5%; /* Center the plot horizontally */
-            transform: scale(1.3, 1.05); /* Center the plot within the container */
+            top: 2.5%;
+            left: 12.5%;
+            transform: scale(1.3, 1.05);
         }
         #loading-gif {
             display: none;
@@ -208,12 +211,12 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            z-index: 10; /* Ensure it's above other elements */
+            z-index: 10;
         }
         .plot-container img {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Ensure the image maintains its aspect ratio */
+            object-fit: contain;
         }
         .bottom-container {
             margin-top: 1rem;
@@ -226,10 +229,12 @@
         }
         .options-container select {
             text-align: center;
-            text-align-last: center; /* For most modern browsers */
+            text-align-last: center;
             padding: 0.6rem;
             border-radius: 0.25rem;
-            border: 0.1rem solid #ccc;
+            border: 0.1rem solid #444; /* Darker border */
+            background-color: #252525; /* Dark select background */
+            color: #fff; /* Light text */
             font-size: 1.4rem;
             margin-bottom: 1.25rem;
             width: 100%;
@@ -241,7 +246,7 @@
         }
         .predict-button-container button {
             padding: 0.75rem 1.5rem;
-            background-color: #28a745;
+            background-color: #343a40;
             border: none;
             border-radius: 0.25rem;
             color: white;
@@ -249,35 +254,9 @@
             cursor: pointer;
         }
         .predict-button-container button:hover {
-            background-color: #218838;
+            background-color: #218838; /* Darker on hover */
         }
-        /* Base styles for mobile (default) */
-        .sidebar {
-            width: 100%;
-            height: auto;
-            position: static;
-        }
-        .main-content {
-            margin-left: 0;
-            width: 100%;
-        }
-        .content {
-            display: flex;
-            flex-direction: column; /* Default direction for mobile */
-            flex-wrap: wrap;
-        }
-        .symbol-add-container {
-            width: 100%;
-            margin-right: 0;
-        }
-        .plot-container {
-            width: 100%;
-        }
-        .options-container select {
-            width: 100%;
-        }
-        
-        /* Tablet screens (768px and up) */
+        /* Responsive styles */
         @media (min-width: 768px) {
             .sidebar {
                 width: 15%;
@@ -303,36 +282,29 @@
                 width: 25%;
             }
         }
-        /* Desktop screens (992px and up) */
         @media (min-width: 992px) {
             .symbol-add-container {
-                width: 20%; /* Adjust width for larger screens */
+                width: 20%;
             }
             .plot-container {
-                width: 80%; /* Adjust width for larger screens */
+                width: 80%;
             }
             .options-container select {
-                width: 20%; /* Adjust width for larger screens */
+                width: 20%;
             }
             .symbol-input {
-                width: 50%
-            }
-            .symbol-input input {
-                font-size: 1.2rem;
-                width: 100%;
-                text-align: center;
+                width: 50%;
             }
         }
-        /* Large desktop screens (1200px and up) */
         @media (min-width: 1200px) {
             .symbol-add-container {
-                width: 20%; /* Adjust for even larger screens */
+                width: 20%;
             }
             .plot-container {
-                width: 80%; /* Adjust for even larger screens */
+                width: 80%;
             }
             .options-container select {
-                width: 20%; /* Adjust for even larger screens */
+                width: 20%;
             }
         }
     </style>
@@ -343,6 +315,7 @@
         <a href="/my_profile">My Profile</a>
         <a href="/forecaster">Forecaster</a>
         <a href="/about_models">About Models</a>
+        <a href="/references">References</a>
         <a href="/logout" class="logout">Log Out</a>
     </div>
     <div class="main-content">
@@ -351,20 +324,21 @@
                 <h3>Portfolio</h3>
                 <div class="symbol-input-container">
                     <div class="symbol-input">
-                        <input type="text" id="symbol-name" placeholder="Enter symbol">
+                        <input type="text" id="symbol-name" placeholder="Symbol Name">
                         <button onclick="addSymbol()"></button>
                     </div>
                 </div>
                 <div class="symbol-list" id="symbol-list">
                     <!-- List of symbols will be dynamically added here -->
                 </div>
+                <!-- Add the new container here -->
+                <div class="additional-container">
+
+                </div>
             </div>
             <div class="plot-container">
-                <!-- Initial placeholder image -->
-                <img id="initial-image" src="{{ url_for('static', filename='forecaster_init_img.png') }}" alt="Initial Image" style="max-width: 60%; max-height: 60%;">
-                <!-- Placeholder for gif -->
-                <img id="loading-gif" src="{{ url_for('static', filename='model_training_2.gif') }}" alt="Loading..." style="display: none; max-width: 60%; max-height: 60%;">
-                <!-- Placeholder for plot -->
+                <canvas id="initial-canvas" width="1000" height="1000" style="background-color: #1f1f1f; display: block;"></canvas>
+                <img id="loading-gif" src="{{ url_for('static', filename='model_training_2_black.gif') }}" alt="Loading..." style="display: none; max-width: 60%; max-height: 60%;">
                 <div id="plot-container"></div>
             </div>
         </div>
@@ -382,6 +356,7 @@
                 </select>
                 <select id="data_length">
                     <option value="" disabled selected>Historical Data Length</option>
+                    <option value="3_months">3 Months</option>
                     <option value="6_months">6 Months</option>
                     <option value="9_months">9 Months</option>
                     <option value="1_year">1 Year</option>
@@ -403,7 +378,7 @@
                 </select>   
             </div>
             <div class="predict-button-container">
-                <button onclick="predict()">Predict</button>
+                <button onclick="predict()">Forecast</button>
             </div>
         </div>
     </div>
@@ -413,8 +388,19 @@
             fetchSymbols();
             updateOptionsBasedOnAccountType();
 
-            // Ensure initial image is visible on load
-            const initialImage = document.getElementById('initial-image');
+            // Drawing text on the canvas
+            const canvas = document.getElementById('initial-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'white'; // Text color
+            ctx.font = '54px Arial'; // Font size and family
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+             // Draw the first line
+            ctx.fillText('Fin-AiDea', canvas.width / 2, canvas.height / 2 - 250); // Adjusted Y position
+            // Draw the second line
+            ctx.font = '34px Arial'; // Smaller font for the second line
+            ctx.fillText('Forecast Your Financial Future!', canvas.width / 2, canvas.height / 2 ); // Adjusted Y position
+
             const loadingGif = document.getElementById('loading-gif');
             const plotImage = document.getElementById('plot-container');
             if (initialImage) {
@@ -464,7 +450,7 @@
         }
         function filterBasicOptions(modelSelect, dataLengthSelect, forecastDaysSelect) {
             const premiumModels = ['ARCH', 'UCM', 'SARIMA', 'AI'];
-            const premiumDataLengths = ['2_years', '3_years', '4_years', '5_years'];
+            const premiumDataLengths = ['1_year', '2_years', '3_years', '4_years', '5_years'];
             const premiumForecastDays = ['3_months', '4_months', '5_months', '6_months', '1_year'];
 
             // Disable premium models
@@ -627,7 +613,7 @@
             }
 
              // Hide the initial image and show the loading GIF
-            const initialImage = document.getElementById('initial-image');
+            const initialImage = document.getElementById('initial-canvas');
             const loadingGif = document.getElementById('loading-gif');
             const plotImage = document.getElementById('plot-container');
             toggleVisibility(initialImage, 'none');
@@ -682,59 +668,98 @@
                     y: forecastData.forecast_prices,
                     mode: 'lines',
                     name: 'Forecasted Prices',
-                    line: { color: 'black', width: 2}
+                    line: { color: '#fff', width: 2}
                 };
                 
                 const fullModelName = getFullModelName(modelType);
                 
                 // Update the layout to include the secondary y-axis for volume and dynamic title
                 const layout = {
-                    title: `${fullModelName} <br> Forecast for ${symbol}`, // Include the symbol in the title
+                    title: {
+                        text: `<b>Fin-AiDea</b> <br> ${fullModelName} <br> Forecast for ${symbol}`,
+                        font: { color: '#fff' } // Set title color to white
+                    },
                     grid: { rows: 3, columns: 1, pattern: 'independent' },
-                    xaxis: {title: 'Date', 
-                            automargin: true,
-                            range: [Math.min(...historicalData.dates) - 1, Math.max(...forecastData.dates) + 1],
-                            fixedrange: true},// Add padding on the x-axis to include forecast dates
-                    yaxis: { title: 'Price', domain: [0.45, 1], rangemode: 'normal', 
-                    range:  [Math.min(...historicalData.low, ...forecastData.forecast_prices) * 0.95,  // Add padding below
-                             Math.max(...historicalData.high, ...forecastData.forecast_prices) * 1.05  // Add padding above
-                            ],
-                            automargin: true,
-                            ticklabelposition: 'outside', // Position the labels outside the axis
-                            ticklabelpadding: 15}, // Adjust domain to fit candlestick
+                    xaxis: {
+                        title: {
+                            text: 'Date',
+                            font: { color: '#fff' } // Set x-axis title color to white
+                        },
+                        automargin: true,
+                        range: [Math.min(...historicalData.dates) - 1, Math.max(...forecastData.dates) + 1],
+                        fixedrange: true,
+                        ticklabelcolor: '#fff', // Set x-axis tick labels color to white
+                        tickfont: { color: '#fff' }
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Price',
+                            font: { color: '#fff' } // Set y-axis title color to white
+                        },
+                        domain: [0.45, 1],
+                        rangemode: 'normal',
+                        range: [
+                            Math.min(...historicalData.low, ...forecastData.forecast_prices) * 0.95,
+                            Math.max(...historicalData.high, ...forecastData.forecast_prices) * 1.05
+                        ],
+                        automargin: true,
+                        ticklabelposition: 'outside', // Position the labels outside the axis
+                        ticklabelpadding: 15,
+                        ticklabelcolor: '#fff', // Set y-axis tick labels color to white
+                        tickfont: { color: '#fff' }
+                    },
                     yaxis2: {
-                        title: 'Volume',
+                        title: {
+                            text: 'Volume',
+                            font: { color: '#fff' } // Set volume y-axis title color to white
+                        },
                         domain: [0.15, 0.40], // Adjust domain to fit volume plot
                         anchor: 'x',
                         range: [Math.min(...historicalData.volume) * 0.9, Math.max(...historicalData.volume) * 1.1],
                         automargin: true, // Anchor yaxis2 to x
                         ticklabelposition: 'outside', // Position the labels outside the axis
-                        ticklabelpadding: 15
+                        ticklabelpadding: 15,
+                        ticklabelcolor: '#fff', // Set volume y-axis tick labels color to white
+                        tickfont: { color: '#fff'}
                     },
                     xaxis2: {
-                        title: 'Date',
+                        title: {
+                            text: 'Date',
+                            font: { color: '#fff' } // Set second x-axis title color to white
+                        },
                         anchor: 'y2',
                         range: [Math.min(...historicalData.dates), Math.max(...forecastData.dates)], // Limit range for volume plot
-                        fixedrange: true // Allow zooming and panning within this range
+                        fixedrange: true, // Allow zooming and panning within this range
+                        ticklabelcolor: '#fff' // Set volume y-axis tick labels color to white
                     },
                     yaxis3: {
-                        title: 'Price',
-                        domain: [0, 0.10], 
+                        title: {
+                            text: 'Price',
+                            font: { color: '#fff' } // Set third y-axis title color to white
+                        },
+                        domain: [0, 0.10],
                         rangemode: 'normal',
                         automargin: true,
+                        ticklabelcolor: '#fff' // Set third y-axis tick labels color to white
                     },
                     xaxis3: {
-                        title: 'Date',
+                        title: {
+                            text: 'Date',
+                            font: { color: '#fff' } // Set third x-axis title color to white
+                        },
                         anchor: 'y3',
                         range: [Math.min(...historicalData.dates), Math.max(...forecastData.dates)], // Limit range for third x-axis
                         fixedrange: true, // Allow zooming and panning within this range
+                        ticklabelcolor: '#fff' // Set volume y-axis tick labels color to white
                     },
                     dragmode: 'pan',
                     showlegend: true,
                     hovermode: 'x',
                     autosize: false,
-                    width: 900,
+                    width: 915,
                     height: 670, // Adjust height as needed
+                    paper_bgcolor: '#1f1f1f', // Set background color
+                    plot_bgcolor: '#1f1f1f',  // Set plot area background color
                     legend: {
                         x: 0,            // Center horizontally
                         y: 1.15,            // Position slightly above the bottom edge of the plot area
@@ -743,7 +768,7 @@
                         orientation: 'v',  // Horizontal legend
                         font: {
                             size: 10,     // Reduce font size to make the legend more compact
-                            color: '#000' // Change color if needed
+                            color: '#fff' // Change color if needed
                         },
                         itemclick: 'toggleothers', // Toggle visibility for others when clicking an item
                         itemwidth: 30,  // Adjust width of each item to fit more items in the legend
@@ -754,9 +779,16 @@
                 
                 const plotData = [candlestickTrace, volumeTrace, forecastTrace];
 
-                Plotly.newPlot('plot-container', plotData, layout);
+                Plotly.newPlot('plot-container', plotData, layout, {
+                    modeBarButtonsToRemove: [
+                        'pan2d', 'select2d', 'lasso2d', 'zoom2d', 'zoomIn2d', 
+                        'zoomOut2d', 'autoScale2d', 'resetScale2d', 'hoverClosestCartesian',
+                        'hoverCompareCartesian', 'toggleSpikelines', 'toggleHover'
+                    ],
+                    modeBarButtons: [['toImage']]}); // Keep only the Download as PNG button
 
                 // Show the plot once it's generated
+                toggleVisibility(initialImage, 'none')
                 toggleVisibility(loadingGif, 'none');
                 toggleVisibility(plotImage, 'block');
             })

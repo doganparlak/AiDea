@@ -3,60 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Fin-AiDea - Sign Up</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212; /* Dark background for consistency */
+            color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
         }
+
         .signup-container {
-            background-color: white;
-            padding: 43.75px; /* 35px * 1.25 */
-            border-radius: 10px; /* 8px * 1.25 */
-            box-shadow: 0 0 12.5px rgba(0, 0, 0, 0.1); /* 10px * 1.25 */
-            width: 375px; /* 300px * 1.25 */
+            background-color: #1f1f1f; /* Match the login container */
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            width: 400px;
             text-align: center;
         }
+
         .signup-container h2 {
-            margin-bottom: 25px; /* 20px * 1.25 */
-            color: #333;
-            font-size: 35px; /* 28px * 1.25 */
+            margin-bottom: 30px;
+            color: #ffffff;
+            font-size: 32px;
+            letter-spacing: 1px;
         }
+
         .signup-container input[type="email"],
         .signup-container input[type="password"] {
-            width: 92.5%;
-            padding: 12.5px; /* 10px * 1.25 */
-            margin: 12.5px 0; /* 10px * 1.25 */
-            border: 1px solid #ddd;
-            border-radius: 5px; /* 4px * 1.25 */
+            width: 82%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #252525;
+            color: #fff;
+            font-size: 16px;
         }
+
+        .signup-container input::placeholder {
+            color: #888;
+        }
+
         .signup-container button {
-            width: 100%;
-            padding: 12.5px; /* 10px * 1.25 */
-            background-color: #28a745;
+            width: 90%; /* Fit the button to the container */
+            padding: 15px;
+            background-color: #343a40; /* Match the button color */
             border: none;
-            border-radius: 5px; /* 4px * 1.25 */
-            color: white;
-            font-size: 20px; /* 16px * 1.25 */
+            border-radius: 8px;
+            color: #f8f9fa; /* Light text color */
+            font-size: 18px;
             cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease-in-out;
+            margin-top: 10px; /* Space above the button */
         }
+
         .signup-container button:hover {
-            background-color: #218838;
+            background-color: #495057; /* Darker button on hover */
         }
+
         .password-rules {
-            text-align: left;
+            text-align: match-parent;
             margin: 20px 0;
+            padding: 0 22px;
             font-size: 14px;
-            color: #666;
+            color: #ccc; /* Lighter text color for rules */
         }
+
         .password-rules ul {
             list-style: none;
             padding: 0;
         }
+
         .password-rules ul li {
             margin: 5px 0;
         }
@@ -70,7 +91,7 @@
             <input type="password" id="password" placeholder="Password" required>
             <input type="password" id="password-re" placeholder="Confirm Password" required>
             <div class="password-rules">
-                <h4>Password Requirements:</h4>
+                <h4>Password Requirements</h4>
                 <ul>
                     <li>At least 8 characters long</li>
                     <li>At least one uppercase letter (A-Z)</li>
@@ -113,6 +134,7 @@
             }).then(response => response.json())
               .then(data => {
                   if (data.redirect) {
+                      alert(data.message);
                       window.location.href = data.redirect;
                   } else {
                       alert(data.message);
