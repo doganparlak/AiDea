@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 def create_app():
     app = Flask(__name__)
-    csrf = CSRFProtect(app)
+    # csrf = CSRFProtect(app)
     app.config.from_object(Config)
     
     db.init_app(app)
