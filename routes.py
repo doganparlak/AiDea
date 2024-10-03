@@ -553,11 +553,8 @@ def init_routes(app):
 
         user_id = session['user_id']
         user = User.query.get(user_id)
-        print(user)
-        print(plan_type)
         if user:
             amount = get_plan_amount(plan_type)
-            print(amount)
             payment_success = process_payment(user, amount)
             if payment_success:
                 #Set account type
@@ -567,9 +564,9 @@ def init_routes(app):
                 #Set subscription end date
                 plan_duration = get_plan_duration(plan_type)  # Get the duration based on plan type
                 if plan_type == 'minutely':
-                    user.subscription_end_date = (datetime.now() + timedelta(minutes=plan_duration)).replace(second=0, microsecond=0)
+                    user.subscription_end_date = (datetime.utcnow() + timedelta(minutes=plan_duration)).replace(second=0, microsecond=0)
                 else:
-                    user.subscription_end_date = (datetime.now() + timedelta(days=plan_duration)).replace(second=0, microsecond=0)
+                    user.subscription_end_date = (datetime.utcnow() + timedelta(days=plan_duration)).replace(second=0, microsecond=0)
                 db.session.commit()
             return '', 204  # Return no content
         else:

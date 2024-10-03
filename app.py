@@ -26,19 +26,18 @@ def renew_expiring_subscriptions():
         # Get the current time rounded to the nearest minute
         today = datetime.utcnow().replace(second=0, microsecond=0)
         # Fetch all users whose subscriptions are expiring 
-        expiring_users = User.query.filter(
+        users = User.query.filter(
             User.account_type != 'basic',
             User.subscription_end_date == today,
         ).all()
-
-        for user in expiring_users:
+        for user in users:
             # Renew the subscription by extending the end date
             if user.account_type == 'monthly':
-                user.subscription_end_date += timedelta(days=31)
+                user.subscription_end_date += timedelta(days=30)
             elif user.account_type == 'quarterly':
-                user.subscription_end_date += timedelta(days=93)
+                user.subscription_end_date += timedelta(days=90)
             elif user.account_type == 'yearly':
-                user.subscription_end_date += timedelta(days=366)
+                user.subscription_end_date += timedelta(days=365)
             elif user.account_type == 'minutely':
                 user.subscription_end_date += timedelta(minutes=2)
 
@@ -52,13 +51,15 @@ def downgrade_nonrenewed_subscriptions():
         # Get the current time rounded to the nearest minute
         today = datetime.utcnow().replace(second=0, microsecond=0)
         # Fetch all users with premium accounts and downgraded to basic accounts
-        users = User.query.filter(User.account_type != 'basic').all()
+        users = User.query.filter(
+                User.account_type != 'basic',
+                User.subscription_end_date <= today,
+                User.renewal == False
+        ).all()
         for user in users:
-            # Check if the subscription end date is current day and no renewal is requested
-            if user.subscription_end_date == today and user.renewal == False:  
-                user.account_type = 'basic'  # Downgrade to basic
-                user.subscription_end_date = None
-                db.session.commit()  # Commit the changes
+            user.account_type = 'basic'  # Downgrade to basic
+            user.subscription_end_date = None
+            db.session.commit()  # Commit the changes
 
 # Function to seed subscription plans into the database
 def seed_plans():
@@ -87,10 +88,10 @@ def create_scheduler(app):
         scheduler.add_job(func=delete_all_models_wrapper, trigger="interval", days=2)
 
         # Add job to downgrade subscriptions daily
-        scheduler.add_job(func=downgrade_nonrenewed_subscriptions, trigger="interval", days=1)
+        scheduler.add_job(func=downgrade_nonrenewed_subscriptions, trigger="interval", minutes=1)
 
         # Job to renew subscriptions every day
-        scheduler.add_job(func=renew_expiring_subscriptions, trigger="interval", days=1)
+        scheduler.add_job(func=renew_expiring_subscriptions, trigger="interval", minutes=1)
 
         scheduler.start()
 

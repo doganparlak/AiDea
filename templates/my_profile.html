@@ -180,6 +180,15 @@
             color: #f0f0f0; /* Light text color */
             border: 1px solid #444; /* Darker border */
         }
+        .highlight-basic {
+        background-color: #333; /* Highlight color for basic users */
+        color: #00ff00; /* Change text color or style */
+        }
+
+        .highlight-premium {
+            background-color: #333; /* Highlight color for premium users */
+            color: #00ff00; /* Change text color or style */
+        }
 
     </style>
 </head>
@@ -215,10 +224,10 @@
                     <div style="display: flex; align-items: center;">
                         <label for="subscription-plan"><strong>Select a plan:</strong></label>
                         <select id="subscription-plan" name="plan" style="margin-left: 10px; padding: 0.5rem;">
-                            <option value="minutely">Minutely: $0.01</option> <!-- FOR TESTING PURPOSES ONLY -->
-                            <option value="monthly">Monthly: $14.99</option>
-                            <option value="quarterly">Quarterly: $39.99</option>
-                            <option value="yearly">Yearly: $99.99</option>
+                            <option value="minutely">Minutely: $0.01/Minute</option> <!-- FOR TESTING PURPOSES ONLY -->
+                            <option value="monthly">Monthly: $14.99/Month</option>
+                            <option value="quarterly">Quarterly: $39.99/3 Months</option>
+                            <option value="yearly">Yearly: $99.99/Year</option>
                         </select>
                         <form id="upgrade-form" action="/upgrade_to_premium" method="POST" style="margin-left: 10px;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -229,10 +238,10 @@
                     <div style="display: flex; align-items: center;">
                         <label for="subscription-plan"><strong>Your current plan:</strong></label>
                         <select id="subscription-plan" name="plan" style="margin-left: 10px; padding: 0.5rem;" disabled>
-                            <option value="minutely" {% if user.account_type == 'minutely' %}selected{% endif %}>Minutely: $0.01</option> <!-- FOR TESTING PURPOSES ONLY -->
-                            <option value="monthly" {% if user.account_type == 'monthly' %}selected{% endif %}>Monthly: $14.99</option>
-                            <option value="quarterly" {% if user.account_type == 'quarterly' %}selected{% endif %}>Quarterly: $39.99</option>
-                            <option value="yearly" {% if user.account_type == 'yearly' %}selected{% endif %}>Yearly: $99.99</option>
+                            <option value="minutely" {% if user.account_type == 'minutely' %}selected{% endif %}>Minutely: $0.01/Minute</option> <!-- FOR TESTING PURPOSES ONLY -->
+                            <option value="monthly" {% if user.account_type == 'monthly' %}selected{% endif %}>Monthly: $14.99/Month</option>
+                            <option value="quarterly" {% if user.account_type == 'quarterly' %}selected{% endif %}>Quarterly: $39.99/3 Months</option>
+                            <option value="yearly" {% if user.account_type == 'yearly' %}selected{% endif %}>Yearly: $99.99/Year</option>
                         </select>
                         <form id="downgrade-form" action="/downgrade_to_basic" method="POST" style="margin-left: 10px;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -250,45 +259,45 @@
                     <thead>
                         <tr>
                             <th>Models</th>
-                            <th>Basic</th>
-                            <th>Premium</th>
+                            <th class="{% if user.account_type == 'basic' %}highlight-basic{% endif %}">Basic</th>
+                            <th class="{% if user.account_type != 'basic' %}highlight-premium{% endif %}">Premium</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>AR</td>
-                            <td class="check"></td>
-                            <td class="check"></td>
+                            <td class="check {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>HWES</td>
-                            <td class="check"></td>
-                            <td class="check"></td>
+                            <td class="check {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>ARIMA</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>SARIMA</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>ARCH</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>UCM</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>AI</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                     </tbody>
                 </table>
@@ -303,43 +312,43 @@
                     <tbody>
                         <tr>
                             <td>3 Months</td>
-                            <td class="check"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>6 Months</td>
-                            <td class="check"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>9 Months</td>
-                            <td class="check"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>1 Year</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>2 Years</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>3 Years</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>4 Years</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>5 Years</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                     </tbody>
                 </table>
@@ -354,43 +363,43 @@
                     <tbody>
                         <tr>
                             <td>1 Week</td>
-                            <td class="check"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>1 Month</td>
-                            <td class="check"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>2 Months</td>
-                            <td class="check"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>3 Months</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>4 Months</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>5 Months</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>6 Months</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>1 Year</td>
-                            <td class="cross"></td>
-                            <td class="check"></td>
+                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                     </tbody>
                 </table>
