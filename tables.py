@@ -10,11 +10,11 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
     account_type = db.Column(db.String(20), nullable=False)  # 'basic', 'monthly', 'quarterly', 'yearly'
     subscription_end_date = db.Column(db.DateTime, nullable=True)  # To manage billing cycle
-    renewal = db.Column(db.Boolean, default=True)  # Flag to indicate if the subscription should auto-renew
+    renewal = db.Column(db.Boolean, default=False)  # Flag to indicate if the subscription should auto-renew
     symbols = db.relationship('Symbol', backref='user', lazy=True)
 
     def __repr__(self):
-        return f'<User: {self.email} - Account Type: {self.account_type}>'
+        return f'<User: {self.email} - Account Type: {self.account_type} - Subs End Date: {self.subscription_end_date} - Renewal:  {self.renewal}>'
     
     @classmethod
     def delete_all_users():

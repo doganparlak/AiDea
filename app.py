@@ -23,20 +23,24 @@ def create_app():
 
 def renew_expiring_subscriptions():
     with app.app_context():
+        # Get the current time rounded to the nearest minute
+        today = datetime.utcnow().replace(second=0, microsecond=0)
         # Fetch all users whose subscriptions are expiring 
         expiring_users = User.query.filter(
             User.account_type != 'basic',
-            User.subscription_end_date == datetime.utcnow() 
+            User.subscription_end_date == today,
         ).all()
 
         for user in expiring_users:
             # Renew the subscription by extending the end date
             if user.account_type == 'monthly':
-                user.subscription_end_date += timedelta(days=30)
+                user.subscription_end_date += timedelta(days=31)
             elif user.account_type == 'quarterly':
-                user.subscription_end_date += timedelta(days=90)
+                user.subscription_end_date += timedelta(days=93)
             elif user.account_type == 'yearly':
-                user.subscription_end_date += timedelta(days=365)
+                user.subscription_end_date += timedelta(days=366)
+            elif user.account_type == 'minutely':
+                user.subscription_end_date += timedelta(minutes=2)
 
             # Process payment if applicable (placeholder for payment processing logic)
             # Example: process_payment(user)
@@ -45,12 +49,15 @@ def renew_expiring_subscriptions():
 
 def downgrade_nonrenewed_subscriptions(): 
     with app.app_context():
+        # Get the current time rounded to the nearest minute
+        today = datetime.utcnow().replace(second=0, microsecond=0)
         # Fetch all users with premium accounts and downgraded to basic accounts
         users = User.query.filter(User.account_type != 'basic').all()
         for user in users:
             # Check if the subscription end date is current day and no renewal is requested
-            if user.subscription_end_date == datetime.utcnow() and user.renewal == False:  
+            if user.subscription_end_date == today and user.renewal == False:  
                 user.account_type = 'basic'  # Downgrade to basic
+                user.subscription_end_date = None
                 db.session.commit()  # Commit the changes
 
 # Function to seed subscription plans into the database
@@ -92,6 +99,15 @@ def create_scheduler(app):
     else:
         print("Scheduler is already running.")
 
+def print_all_users():
+    users = User.query.all()  # Fetch all users from the database
+    if not users:
+        print("No users found in the database.")
+    else:
+        print("Users in the database:")
+        for user in users:
+            print(user)  # This will call the __repr__ method of the User class
+
 # Initialize Flask app and Scheduler
 app = create_app()
 
@@ -100,5 +116,6 @@ if __name__ == '__main__':
         db.create_all()
         seed_plans()  # Seed the subscription plans into the database
         create_scheduler(app)
+        print_all_users()  # Print all users in the database
 
     app.run(debug=True)

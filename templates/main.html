@@ -535,7 +535,6 @@
         function addSymbol() {
             const symbolInputField = document.getElementById('symbol-name');
             const csrfToken = document.querySelector('input[name="csrf_token"]').value; // Get CSRF token
-            console.log('CSRF Token:', csrfToken); 
             let symbol = symbolInputField.value.trim();
             if (symbol) {
                 symbol = symbol.toUpperCase();
