@@ -199,6 +199,7 @@
                 <p><strong>Email:</strong> {{ user.email }}</p>
                 <div class="info-actions">
                     <form action="/delete_account" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <button type="submit" class="delete-button">Delete Account</button>
                     </form>
                 </div>
@@ -215,7 +216,7 @@
                             <option value="yearly">Yearly: $99.99</option>
                         </select>
                         <form id="upgrade-form" action="/upgrade_to_premium" method="POST" style="margin-left: 10px;">
-                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <button type="submit" class="upgrade-button">Upgrade to Premium</button>
                         </form>
                     </div>
@@ -228,7 +229,7 @@
                             <option value="yearly" {% if user.account_type == 'yearly' %}selected{% endif %}>Yearly: $99.99</option>
                         </select>
                         <form id="downgrade-form" action="/downgrade_to_basic" method="POST" style="margin-left: 10px;">
-                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                             <button type="submit" class="downgrade-button">Downgrade to Basic</button>
                         </form>
                         <p style="margin-left: 10px; color: #f0f0f0;">* Your premium plan will remain active until the subscription end date.</p>

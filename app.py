@@ -7,9 +7,12 @@ import atexit
 from flask_wtf.csrf import CSRFProtect
 from datetime import datetime, timedelta
 
+# Initialize CSRF protection
+csrf = CSRFProtect()
+
 def create_app():
     app = Flask(__name__)
-    # csrf = CSRFProtect(app)
+    csrf.init_app(app)  # Enable CSRF protection for the app
     app.config.from_object(Config)
     
     db.init_app(app)
@@ -72,20 +75,22 @@ def delete_all_models_wrapper():
 # Function to create and start the scheduler
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
-    # Pass the wrapper function to the scheduler, delete all models after 2 days
-    scheduler.add_job(func=delete_all_models_wrapper, trigger="interval", days=2)
-    scheduler.start()
+    if not scheduler.running:
+        # Pass the wrapper function to the scheduler, delete all models after 2 days
+        scheduler.add_job(func=delete_all_models_wrapper, trigger="interval", days=2)
 
-    # Add job to downgrade subscriptions daily
-    scheduler.add_job(func=downgrade_nonrenewed_subscriptions, trigger="interval", days=1)
+        # Add job to downgrade subscriptions daily
+        scheduler.add_job(func=downgrade_nonrenewed_subscriptions, trigger="interval", days=1)
 
-    # Job to renew subscriptions every day
-    scheduler.add_job(func=renew_expiring_subscriptions, trigger="interval", days=1)
+        # Job to renew subscriptions every day
+        scheduler.add_job(func=renew_expiring_subscriptions, trigger="interval", days=1)
 
-    scheduler.start()
+        scheduler.start()
 
-    # Shut down the scheduler when exiting the app
-    atexit.register(lambda: scheduler.shutdown())
+        # Shut down the scheduler when exiting the app
+        atexit.register(lambda: scheduler.shutdown())
+    else:
+        print("Scheduler is already running.")
 
 # Initialize Flask app and Scheduler
 app = create_app()

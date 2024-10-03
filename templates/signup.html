@@ -87,6 +87,7 @@
     <div class="signup-container">
         <h2>Sign Up</h2>
         <form id="signupForm">
+            <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token() }}">
             <input type="email" id="email" placeholder="E-mail Address" required>
             <input type="password" id="password" placeholder="Password" required>
             <input type="password" id="password-re" placeholder="Confirm Password" required>
@@ -109,6 +110,7 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const passwordRe = document.getElementById('password-re').value;
+            const csrfToken = document.getElementById('csrf_token').value;
 
             // Validate password strength
             if (!isValidPassword(password)) {
@@ -124,7 +126,8 @@
             fetch('/signup', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken // Include CSRF token here
                 },
                 body: JSON.stringify({
                     email: email,

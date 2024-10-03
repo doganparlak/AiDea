@@ -209,29 +209,33 @@ def init_routes(app):
             return render_template('signup.html')
         
         if request.method == 'POST':
-            data = request.json
+            data = request.get_json()
             if not data:
                 return jsonify({'message': 'No data provided.'}), 400
             
             email = data.get('email')
             password = data.get('password')
             password_re = data.get('password_re')
-            
+            print(email, password, password_re)
             # Check if all fields are present
             if not email or not password or not password_re:
+                print('here1')
                 return jsonify({'message': 'All fields are required.'}), 400
 
             # Check if email already exists
             existing_user = User.query.filter_by(email=email).first()
             if existing_user:
+                print('here2')
                 return jsonify({'message': 'User already exists.'}), 400
 
             # Check if passwords match
             if password != password_re:
+                print('here3')
                 return jsonify({'message': 'Passwords do not match.'}), 400
             
             # Validate password strength
             if not is_valid_password(password):
+                print('here4')
                 return jsonify({'message': 'Password must be at least 8 characters long, include uppercase letters, lowercase letters, and numbers.'}), 400
             
             # Create new user

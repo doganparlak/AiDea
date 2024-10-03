@@ -69,6 +69,7 @@
     <div class="request_email-container">
         <h2>Registered E-mail</h2>
         <form id="requestEmailForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="email" id="email" placeholder="E-mail Address" required>
             <button type="submit">Submit</button>
         </form>
@@ -78,11 +79,13 @@
         document.getElementById('requestEmailForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const email = document.getElementById('email').value;
+            const csrfToken = document.querySelector('input[name="csrf_token"]').value;  // Get CSRF token from the form
 
             fetch('/request_email', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken  // Include CSRF token in the headers
                 },
                 body: JSON.stringify({
                     email: email
