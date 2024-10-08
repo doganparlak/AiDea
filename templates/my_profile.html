@@ -229,7 +229,7 @@
                             <option value="quarterly">Quarterly: $39.99/3 Months</option>
                             <option value="yearly">Yearly: $99.99/Year</option>
                         </select>
-                        <form id="upgrade-form" action="/upgrade_to_premium" method="POST" style="margin-left: 10px;">
+                        <form id="upgrade-form" action="/initialize_payment" method="POST" style="margin-left: 10px;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="upgrade-button">Upgrade to Premium</button>
                         </form>
@@ -312,12 +312,12 @@
                     <tbody>
                         <tr>
                             <td>3 Months</td>
-                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
                             <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>6 Months</td>
-                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
                             <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
@@ -363,12 +363,12 @@
                     <tbody>
                         <tr>
                             <td>1 Week</td>
-                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
                             <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
                             <td>1 Month</td>
-                            <td class="cross {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
+                            <td class="check {% if user.account_type == 'basic' %}highlight-basic{% endif %}"></td>
                             <td class="check {% if user.account_type != 'basic' %}highlight-premium{% endif %}"></td>
                         </tr>
                         <tr>
@@ -413,7 +413,9 @@
             const upgradeForm = document.getElementById('upgrade-form');
             const downgradeForm = document.getElementById('downgrade-form');
             const subscriptionPlan = document.getElementById('subscription-plan');
-            const planWarningMessage = document.getElementById('plan-warning-message');
+            const renewalNotification = document.getElementById('renewal-notification');
+            const newExpirationDate = document.getElementById('new-expiration-date');
+
     
             // Check if the upgrade form exists before adding event listener
             if (upgradeForm) {
@@ -421,21 +423,8 @@
                     event.preventDefault();
                     const selectedPlan = subscriptionPlan.value; // Get the selected plan from dropdown
                     const csrfToken = upgradeForm.querySelector('input[name="csrf_token"]').value; // Get CSRF token
-
-                    fetch(`/upgrade_to_premium/${selectedPlan}`, {  // Include the plan type in the request URL
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-Token': csrfToken // Include CSRF token here
-                        }
-                    }).then(response => {
-                        console.log('Upgrade response status:', response.status); // Debugging
-                        if (response.ok) {
-                            showMessageAndLogout('Your account type has been upgraded. Please log in again.');
-                        } else {
-                            throw new Error('Failed to upgrade');
-                        }
-                    }).catch(error => console.error('Error:', error));
+                    const paymentProcessUrl = `/payment_process?plan=${encodeURIComponent(selectedPlan)}&csrf_token=${encodeURIComponent(csrfToken)}`;
+                    window.location.href = paymentProcessUrl; // Redirect to the payment process page
                 });
             }
     
@@ -454,7 +443,9 @@
                     }).then(response => {
                         console.log('Downgrade response status:', response.status); // Debugging
                         if (response.ok) {
-                            showMessageAndLogout('Your account type has been downgraded. You will continue to use premium features until the end of your subscription.');
+                            showMessageAndLogout('Your account type has been downgraded. \
+                                                  You will continue to use premium features until the end of your subscription. \
+                                                Please log in again.');
                         } else {
                             throw new Error('Failed to downgrade');
                         }

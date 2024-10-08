@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fin-AiDea - Payment Process</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212; /* Dark background for consistency */
+            color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .payment-container {
+            background-color: #1f1f1f; /* Match the login and signup containers */
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            width: 400px; /* Match width with other containers */
+            text-align: center;
+        }
+
+        .payment-container h2 {
+            margin-bottom: 30px;
+            color: #ffffff;
+            font-size: 32px;
+            letter-spacing: 1px;
+        }
+
+        .payment-container input[type="text"],
+        .payment-container input[type="email"],
+        .payment-container input[type="number"],
+        .payment-container select {
+            width: 82%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #252525;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .payment-container input::placeholder {
+            color: #888;
+        }
+
+        .payment-container button {
+            width: 90%; /* Fit the button to the container */
+            padding: 15px;
+            background-color: #343a40; /* Consistent button color */
+            border: none;
+            border-radius: 8px;
+            color: #f8f9fa; /* Light text color */
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease-in-out;
+            margin-top: 10px; /* Space above the button */
+        }
+
+        .payment-container button:hover {
+            background-color: #495057; /* Darker button on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <h2>Payment Information</h2>
+        <form id="payment-form">
+            <input type="text" name="name" placeholder="Name" required>
+            <input type="text" name="surname" placeholder="Surname" required>
+            <input type="text" name="identity_number" placeholder="Identity Number" required>
+            <input type="text" name="registration_address" placeholder="Registration Address" required>
+            <input type="text" name="city" placeholder="City" required>
+            <input type="text" name="country" placeholder="Country" required>
+            <input type="text" name="zip_code" placeholder="Zip Code" required>
+            <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token() }}"> <!-- CSRF token -->
+            <input type="hidden" name="plan" id="plan" value="{{ plan }}"> <!-- Hidden field for plan -->
+            <button type="submit">Proceed to Payment</button>
+        </form>
+    </div>
+
+    <script>
+         // Function to get query parameters from the URL
+         function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                plan: params.get('plan'),
+                csrf_token: params.get('csrf_token')
+            };
+        }
+
+        // Pre-fill the hidden fields with the values from the URL
+        const { plan, csrf_token } = getQueryParams();
+        document.getElementById('plan').value = plan;
+        document.getElementById('csrf_token').value = csrf_token;
+
+
+        document.getElementById('payment-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            const formData = new FormData(this); // Get form data
+            const csrfToken = formData.get('csrf_token'); // Get CSRF token
+            
+            console.log("CSRF Token:", csrfToken);
+            console.log("Selected Plan:", formData.get('plan')); 
+            
+            // Collect the data into an object
+            const data = {
+                name: formData.get('name'),
+                surname: formData.get('surname'),
+                identity_number: formData.get('identity_number'),
+                registration_address: formData.get('registration_address'),
+                city: formData.get('city'),
+                country: formData.get('country'),
+                zip_code: formData.get('zip_code'),
+                plan: formData.get('plan'),
+                csrf_token: csrfToken
+            };
+
+            // Send the data to the initialize_payment endpoint
+            fetch('/initialize_payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken // Include CSRF token here
+                },
+                body: JSON.stringify(data) // Convert the data object to JSON
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to initialize payment'); // Handle response errors
+                }
+                return response.json(); // Parse the response as JSON
+            })
+            .then(data => {
+                if (data.payment_url) {
+                    // Redirect to the payment page returned by Iyzico
+                    window.location.href = data.payment_url; 
+                } else {
+                    alert('Failed to get payment URL'); // Handle missing payment URL
+                }
+            })
+            .catch(error => {
+                console.error('Error during payment initialization:', error); // Log the error
+                alert('An error occurred while processing your request. Please try again.'); // Notify the user
+            });
+        });
+    </script>
+</body>
+</html>

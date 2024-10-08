@@ -12,6 +12,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from models import create_model
 from tables import db, User, Symbol, TrainedModels, TemporaryPassword, SubscriptionPlan
+import iyzipay
+import json
 
 # Read the configuration file at the top of the script
 def read_settings(file_path):
@@ -21,6 +23,14 @@ def read_settings(file_path):
 
 # Load the settings file
 settings = read_settings('settings.yaml')
+iyzico_api_key = settings['IYZICO-KEYS']['api_key']
+iyzico_secret_key = settings['IYZICO-KEYS']['api_key']
+iyzico_base_url = settings['IYZICO-KEYS']['base_url']
+options = {
+    'api_key': iyzico_api_key,
+    'secret_key': iyzico_secret_key,
+    'base_url': iyzico_base_url
+}
 
 def generate_temporary_password(length=8):
     letters_and_digits = string.ascii_letters + string.digits
@@ -164,21 +174,16 @@ def get_plan_duration(plan_type):
     
 def get_plan_amount(plan_type):
     if plan_type == 'monthly':
-        return 14.99  # 30 days price
+        return 14.99  * 100  # Amount in cents - 30 days price
     elif plan_type == 'quarterly':
-        return 39.99  # 90 days price
+        return 39.99  * 100  # Amount in cents - 90 days price
     elif plan_type == 'yearly':
-        return 99.99  # 365 days price
+        return 99.99  * 100  # Amount in cents - 365 days price
     elif plan_type == 'minutely': # FOR TESTING PURPOSE ONLY
-        return 0.01
+        return 0.01   * 100  # Amount in cents -- 1 minute
     else:
         raise ValueError("Invalid plan type")  # Handle unexpected plan types
-
-def process_payment(user, amount):
-    # This is where actual payment processing would happen (e.g., Stripe, PayPal)
-    # For now, simulate a successful payment
-        return True
-    
+        
 def init_routes(app):
     @app.route('/')
     def index():
@@ -545,34 +550,12 @@ def init_routes(app):
         else:
             #flash('Account deletion failed.', 'danger')
             return redirect(url_for('my_profile'))
+    
+    @app.route('/payment_process', methods=['GET', 'POST'])
+    def payment_process():
+        # Render the payment process page
+        return render_template('payment_process.html')
         
-    @app.route('/upgrade_to_premium/<plan_type>', methods=['POST'])
-    def upgrade_to_premium(plan_type):
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-
-        user_id = session['user_id']
-        user = User.query.get(user_id)
-        if user:
-            amount = get_plan_amount(plan_type)
-            payment_success = process_payment(user, amount)
-            if payment_success:
-                #Set account type
-                user.account_type = plan_type # Update Account type
-                #Set auto-renewal
-                user.renewal = True
-                #Set subscription end date
-                plan_duration = get_plan_duration(plan_type)  # Get the duration based on plan type
-                if plan_type == 'minutely':
-                    user.subscription_end_date = (datetime.utcnow() + timedelta(minutes=plan_duration)).replace(second=0, microsecond=0)
-                else:
-                    user.subscription_end_date = (datetime.utcnow() + timedelta(days=plan_duration)).replace(second=0, microsecond=0)
-                db.session.commit()
-            return '', 204  # Return no content
-        else:
-            return '', 400  # Bad request if upgrade fails
-
-
     @app.route('/downgrade_to_basic', methods=['POST'])
     def downgrade_to_basic():
         if 'user_id' not in session:
@@ -588,4 +571,123 @@ def init_routes(app):
             return '', 204  # Return no content
         else:
             return '', 400  # Bad request if downgrade fails
+
+    @app.route('/initialize_payment', methods=['POST'])
+    def initialize_payment():
+        if 'user_id' not in session:
+            return jsonify({"error": "User not authenticated"}), 403
+
+        user_id = session['user_id']
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"error": "User not found"}), 400
+
+         # Get selected plan from JSON request
+        data = request.json
+        plan_type = data.get('plan')
+        amount = get_plan_amount(plan_type)
+        
+        # Payment request parameters
+        request_data = {
+            'locale': 'tr',  # Language for the payment form
+            'conversationId': str(user_id),
+            'price': str(amount),
+            'paidPrice': str(amount),
+            'currency': 'TRY',
+            'basketId': str(user_id),
+            'paymentGroup': 'SUBSCRIPTION',  # This marks it as a subscription
+            'callbackUrl': url_for('payment_callback', _external=True),  # URL for Iyzico to redirect after payment
+            'buyer': {
+                'id': str(user_id),
+                'name': data.get('name'),
+                'surname': data.get('surname'),
+                'identityNumber': data.get('identity_number'),
+                'email': user.email,
+                'registrationAddress': data.get('registration_address'),
+                'ip': request.remote_addr,
+                'city': data.get('city'),
+                'country': data.get('country'),
+                'zipCode': data.get('zip_code')
+            },
+            'shippingAddress': {  # Add shipping address
+                'contactName': f"{data.get('name')} {data.get('surname')}",
+                'city': data.get('city'),
+                'country': data.get('country'),
+                'address': data.get('registration_address'),
+                'zipCode': data.get('zip_code')
+            },
+            'billingAddress': {  # Add billing address
+                'contactName': f"{data.get('name')} {data.get('surname')}",
+                'city': data.get('city'),
+                'country': data.get('country'),
+                'address': data.get('registration_address'),
+                'zipCode': data.get('zip_code')
+            },
+            'basketItems': [
+                {
+                    'id': '1',
+                    'name': plan_type,
+                    'category1': 'Subscription',
+                    'itemType': 'VIRTUAL',
+                    'price': str(amount)
+                }
+            ]
+        }
+
+        print('Line before options')
+        payment_init = iyzipay.CheckoutFormInitialize().create(request_data, options)
+        payment_response = payment_init.read().decode('utf-8')
+        payment_json = json.loads(payment_response)
+
+        if 'paymentPageUrl' in payment_json:
+            # Instead of redirecting, return the payment URL
+            return jsonify({'payment_url': payment_json['paymentPageUrl']}), 200
+        else:
+            return jsonify({"error": "Failed to initialize payment"}), 400
+    
+    @app.route('/payment_callback', methods=['POST'])
+    def payment_callback():
+        # Get the response from Iyzico
+        request_data = request.values.to_dict()  # This gets all the query parameters in the request
+
+        if request_data.get('status') == 'success':
+            # Extract necessary information from the response
+            card_token = request_data.get('cardToken') # Double check this
+            card_user_key = request_data.get('cardUserKey') # Double check this
+
+            user_id = session.get('user_id')
+            user = User.query.get(user_id)
+
+            if user:
+                plan_type = request_data.get('basketItems')[0]['name'] 
+                
+                #Set account type
+                user.account_type = plan_type
+                #Set auto-renewal
+                user.renewal = True
+
+                # Store card information for future payments if upgrading to premium
+                is_upgrading_to_premium = user.account_type == 'basic' and plan_type != 'basic'
+                if is_upgrading_to_premium:
+                    user.card_user_key = card_user_key
+                    user.card_token = card_token
+
+                #Set subscription end date
+                plan_duration = get_plan_duration(plan_type)
+                if plan_type == 'minutely':
+                    user.subscription_end_date = (datetime.utcnow() + timedelta(minutes=plan_duration)).replace(second=0, microsecond=0)
+                else:
+                    user.subscription_end_date = (datetime.utcnow() + timedelta(days=plan_duration)).replace(second=0, microsecond=0)
+
+                db.session.commit()
+                return redirect(url_for('my_profile'))  # Redirect to my_profile page after success
+            else:
+                return jsonify({"error": "User not found"}), 400
+        else:
+            return jsonify({"error": "Payment failed"}), 400
+    
+
+    
+
+
 

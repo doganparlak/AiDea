@@ -451,8 +451,8 @@
         }
         function filterBasicOptions(modelSelect, dataLengthSelect, forecastDaysSelect) {
             const premiumModels = ['ARIMA', 'SARIMA', 'ARCH', 'UCM', 'AI'];
-            const premiumDataLengths = ['1_year', '2_years', '3_years', '4_years', '5_years'];
-            const premiumForecastDays = ['3_months', '4_months', '5_months', '6_months', '1_year'];
+            const premiumDataLengths = ['9_months', '1_year', '2_years', '3_years', '4_years', '5_years'];
+            const premiumForecastDays = ['2_months', '3_months', '4_months', '5_months', '6_months', '1_year'];
 
             // Disable premium models
             premiumModels.forEach(model => {
@@ -678,7 +678,7 @@
                     x: forecastData.dates,
                     y: forecastData.forecast_prices,
                     mode: 'lines',
-                    name: 'Forecasted Prices',
+                    name: 'Forecast',
                     line: { color: '#fff', width: 2}
                 };
                 

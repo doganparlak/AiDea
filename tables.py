@@ -9,13 +9,20 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     account_type = db.Column(db.String(20), nullable=False)  # 'basic', 'monthly', 'quarterly', 'yearly'
-    subscription_end_date = db.Column(db.DateTime, nullable=True)  # To manage billing cycle
     renewal = db.Column(db.Boolean, default=False)  # Flag to indicate if the subscription should auto-renew
     symbols = db.relationship('Symbol', backref='user', lazy=True)
+    subscription_end_date = db.Column(db.DateTime, nullable=True)  # To manage billing cycle
+    card_user_key = db.Column(db.String(255), nullable=True)  # Iyzico cardUserKey for future payments
+    card_token = db.Column(db.String(255), nullable=True)  # Iyzico cardToken for future payments
 
     def __repr__(self):
-        return f'<User: {self.email} - Account Type: {self.account_type} - Subs End Date: {self.subscription_end_date} - Renewal:  {self.renewal}>'
-    
+            return (f'<User: {self.email} \n'
+                    f'Account Type: {self.account_type} \n'
+                    f'Subscription End Date: {self.subscription_end_date} \n'
+                    f'Renewal: {self.renewal} \n'
+                    f'Card User Key: {self.card_user_key} \n'
+                    f'Card Token: {self.card_token}>')
+            
     @classmethod
     def delete_all_users():
         try:
