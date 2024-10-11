@@ -63,6 +63,64 @@
         .request_email-container button:hover {
             background-color: #495057; /* Darker button on hover */
         }
+        /* Tablets and small laptops (768px - 1199px) */
+        @media (max-width: 1200px) {
+            .request_email-container {
+                width: 350px; /* Slightly smaller width */
+                padding: 40px; /* Reduce padding */
+            }
+
+            .request_email-container h2 {
+                font-size: 28px; /* Reduce font size slightly */
+            }
+
+            .request_email-container input[type="email"]{
+                width: 82%; /* Adjust input and button width */
+            }
+            .request_email-container button {
+                width: 90%; /* Adjust input and button width */
+            }
+        }
+
+        /* Mobile devices (less than 768px) */
+        @media (max-width: 768px) {
+            .request_email-container {
+                width: 300px; /* Narrower width for smaller screens */
+                padding: 30px; /* Reduce padding */
+            }
+
+            .request_email-container h2 {
+                font-size: 24px; /* Smaller heading size */
+            }
+
+            .request_email-container input[type="email"]{
+                width: 82%; /* Adjust input and button width */
+            }
+            .request_email-container button {
+                width: 90%; /* Adjust input and button width */
+                padding: 12px; /* Slightly smaller button */
+            }
+        }
+
+        /* Very small screens (less than 480px) */
+        @media (max-width: 480px) {
+            .request_email-container {
+                width: 100%; /* Full width for small screens */
+                padding: 20px; /* Reduce padding */
+                box-shadow: none; /* Remove shadow for simplicity */
+            }
+
+            .request_email-container h2 {
+                font-size: 22px; /* Further reduce heading size */
+            }
+
+            .request_email-container input[type="email"]{
+                width: 82%; /* Adjust input and button width */
+            }
+            .request_email-container button {
+                width: 90%; /* Adjust input and button width */
+            }
+        }
     </style>
 </head>
 <body>

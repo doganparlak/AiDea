@@ -106,19 +106,54 @@
             
             const formData = new FormData(this); // Get form data
             const csrfToken = formData.get('csrf_token'); // Get CSRF token
-            
-            console.log("CSRF Token:", csrfToken);
-            console.log("Selected Plan:", formData.get('plan')); 
+            const name = formData.get('name');
+            const surname = formData.get('surname');
+            const identityNumber = formData.get('identity_number');
+            const city = formData.get('city');
+            const country = formData.get('country');
+            const zipCode = formData.get('zip_code');
+
+            // Name and Surname validation: no numbers allowed
+            const nonNumericPattern = /^[a-zA-Z\s]+$/;
+            if (!nonNumericPattern.test(name) || !nonNumericPattern.test(surname)) {
+                alert('Name and Surname must not contain numbers.');
+                return;
+            }
+
+            // Identity Number validation: 11 digits, all numbers
+            const identityNumberPattern = /^\d{11}$/;
+            if (!identityNumberPattern.test(identityNumber)) {
+                alert('Identity Number must be exactly 11 digits and contain only numbers.');
+                return;
+            }
+
+            // City validation: no numbers allowed
+            if (!nonNumericPattern.test(city)) {
+                alert('City must not contain numbers.');
+                return;
+            }
+            // Country validation: no numbers allowed
+            if (!nonNumericPattern.test(country)) {
+                alert('Country must not contain numbers.');
+                return;
+            }
+
+             // Zip Code validation: all digits
+             const zipCodePattern = /^\d+$/;
+            if (!zipCodePattern.test(zipCode)) {
+                alert('Zip Code must contain only numbers.');
+                return;
+            }
             
             // Collect the data into an object
             const data = {
-                name: formData.get('name'),
-                surname: formData.get('surname'),
-                identity_number: formData.get('identity_number'),
+                name: name,
+                surname: surname,
+                identity_number: identityNumber,
                 registration_address: formData.get('registration_address'),
-                city: formData.get('city'),
-                country: formData.get('country'),
-                zip_code: formData.get('zip_code'),
+                city: city,
+                country: country,
+                zip_code: zipCode,
                 plan: formData.get('plan'),
                 csrf_token: csrfToken
             };
@@ -139,6 +174,7 @@
                 return response.json(); // Parse the response as JSON
             })
             .then(data => {
+                console.log('Response Data:', data);
                 if (data.payment_url) {
                     // Redirect to the payment page returned by Iyzico
                     window.location.href = data.payment_url; 

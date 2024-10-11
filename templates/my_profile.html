@@ -443,9 +443,7 @@
                     }).then(response => {
                         console.log('Downgrade response status:', response.status); // Debugging
                         if (response.ok) {
-                            showMessageAndLogout('Your account type has been downgraded. \
-                                                  You will continue to use premium features until the end of your subscription. \
-                                                Please log in again.');
+                            showMessageAndLogout('Your account type has been downgraded. You will continue to use premium features until the end of your subscription. Please log in again.');
                         } else {
                             throw new Error('Failed to downgrade');
                         }

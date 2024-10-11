@@ -57,6 +57,66 @@
         .account_verification-container button:hover {
             background-color: #495057; /* Darker button on hover */
         }
+
+        /* Tablets and small laptops (768px - 1199px) */
+        @media (max-width: 1200px) {
+            .account_verification-container {
+                width: 350px; /* Slightly smaller width */
+                padding: 40px; /* Reduce padding */
+            }
+
+            .account_verification-container h2 {
+                font-size: 28px; /* Reduce font size slightly */
+            }
+
+            .account_verification-container input[type="password"]{
+                width: 82%; /* Adjust input and button width */
+            }
+            .account_verification-container button {
+                width: 90%; /* Adjust input and button width */
+            }
+        }
+
+        /* Mobile devices (less than 768px) */
+        @media (max-width: 768px) {
+            .account_verification-container {
+                width: 90%; /* More flexible width for small screens */
+                padding: 30px; /* Reduce padding */
+            }
+
+            .account_verification-container h2 {
+                font-size: 24px; /* Smaller heading size */
+            }
+
+            .account_verification-container input[type="password"]{
+                width: 82%; /* Adjust input and button width */
+            }
+            .account_verification-container button {
+                padding: 12px;
+                width: 90%; /* Adjust input and button width */
+            }
+        }
+
+        /* Very small screens (less than 480px) */
+        @media (max-width: 480px) {
+            .account_verification-container {
+                width: 100%; /* Full width for small screens */
+                padding: 20px; /* Reduce padding */
+                box-shadow: none; /* Remove shadow for simplicity */
+            }
+
+            .account_verification-container h2 {
+                font-size: 22px; /* Further reduce heading size */
+            }
+
+            .account_verification-container input[type="password"]{
+                width: 82%; /* Adjust input and button width */
+            }
+            .account_verification-container button {
+                width: 90%; /* Adjust input and button width */
+            }
+        }
+        
     </style>
 </head>
 <body>

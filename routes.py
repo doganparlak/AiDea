@@ -183,7 +183,10 @@ def get_plan_amount(plan_type):
         return 0.01   * 100  # Amount in cents -- 1 minute
     else:
         raise ValueError("Invalid plan type")  # Handle unexpected plan types
-        
+
+def process_payment(user, amount, type = 'Upgrade'):
+    return True
+
 def init_routes(app):
     @app.route('/')
     def index():
@@ -564,7 +567,7 @@ def init_routes(app):
         user_id = session['user_id']
         user = User.query.get(user_id)
         print(user)
-        if user and user.account_type != 'basic':
+        if user and user.account_type != 'basic' and user.renewal == True:
             user.renewal = False  # Stop auto-renewal
             db.session.commit()
             print('Downgrade request submitted. You will be downgraded to basic once your current subscription ends.')
@@ -586,7 +589,10 @@ def init_routes(app):
         data = request.json
         plan_type = data.get('plan')
         amount = get_plan_amount(plan_type)
-        
+        payment_status = process_payment(user, amount, type = 'Upgrade')
+
+        print(plan_type, amount, payment_status)
+        '''
         # Payment request parameters
         request_data = {
             'locale': 'tr',  # Language for the payment form
@@ -638,13 +644,35 @@ def init_routes(app):
         payment_init = iyzipay.CheckoutFormInitialize().create(request_data, options)
         payment_response = payment_init.read().decode('utf-8')
         payment_json = json.loads(payment_response)
-
+        
         if 'paymentPageUrl' in payment_json:
             # Instead of redirecting, return the payment URL
             return jsonify({'payment_url': payment_json['paymentPageUrl']}), 200
+        '''
+        if payment_status: #SIMULATION
+            #Set account type
+            user.account_type = plan_type
+            #Set auto-renewal
+            user.renewal = True
+            # Store card information for future payments if upgrading to premium
+            is_upgrading_to_premium = user.account_type == 'basic' and plan_type != 'basic'
+            if is_upgrading_to_premium:
+                user.card_user_key = user_id 
+                user.card_token = user_id
+            #Set subscription end date
+            plan_duration = get_plan_duration(plan_type)
+            if plan_type == 'minutely':
+                user.subscription_end_date = (datetime.utcnow() + timedelta(minutes=plan_duration)).replace(second=0, microsecond=0)
+            else:
+                user.subscription_end_date = (datetime.utcnow() + timedelta(days=plan_duration)).replace(second=0, microsecond=0)
+
+            db.session.commit()
+            return jsonify({'payment_url': url_for('my_profile')}), 200
+            #return redirect(url_for('my_profile'))
         else:
             return jsonify({"error": "Failed to initialize payment"}), 400
     
+    '''
     @app.route('/payment_callback', methods=['POST'])
     def payment_callback():
         # Get the response from Iyzico
@@ -685,7 +713,7 @@ def init_routes(app):
                 return jsonify({"error": "User not found"}), 400
         else:
             return jsonify({"error": "Payment failed"}), 400
-    
+    '''
 
     
 

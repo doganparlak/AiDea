@@ -1,10 +1,9 @@
 from flask import Flask
 from config import Config
 from tables import db, TrainedModels, SubscriptionPlan, User
-from routes import init_routes, get_plan_amount, read_settings
+from routes import init_routes, get_plan_amount, read_settings, process_payment
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
-import stripe
 from flask_wtf.csrf import CSRFProtect
 from datetime import datetime, timedelta
 import iyzipay
@@ -47,10 +46,8 @@ def renew_expiring_subscriptions():
         for user in users:
             # Get amount to be deducted
             amount = get_plan_amount(user.account_type)
-            if not user.card_user_key or not user.card_token:
-                print(f"No payment token found for user {user.email}, skipping renewal.")
-                continue
-
+            payment_status = process_payment(user, amount, type = 'Renew')
+            '''
             # Iyzico payment request for auto-renewal
             request_data = {
                 'locale': 'tr',  # Turkish language
@@ -82,10 +79,9 @@ def renew_expiring_subscriptions():
             payment_result = iyzipay.Payment().create(request_data, options)
             result_json = payment_result.read().decode('utf-8')
             result = json.loads(result_json)
-
             if result['status'] == 'success':
-                print(f"Subscription renewed successfully for {user.email}")
-
+            '''
+            if payment_status:
                 # Extend the subscription end date
                 if user.account_type == 'monthly':
                     user.subscription_end_date += timedelta(days=30)
@@ -96,6 +92,7 @@ def renew_expiring_subscriptions():
                 elif user.account_type == 'minutely':
                     user.subscription_end_date += timedelta(minutes=2)
 
+                print(f"Subscription renewed successfully for {user.email}, subscription end date: {user.subscription_end_date}")
                 # Commit the renewal in the database
                 db.session.commit()
 
@@ -104,7 +101,7 @@ def renew_expiring_subscriptions():
                 user.account_type = 'basic'  # Downgrade to basic
                 user.subscription_end_date = None
                 db.session.commit()  # Commit the changes
-                print(f"Failed to renew subscription for {user.email}: {result.get('errorMessage')}")
+                print(f"Failed to renew subscription for {user.email}. Downgrading to basic.")
         
 
 
