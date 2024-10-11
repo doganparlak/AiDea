@@ -66,6 +66,64 @@
         .payment-container button:hover {
             background-color: #495057; /* Darker button on hover */
         }
+        /* Large screens (desktop) */
+        @media (max-width: 1200px) {
+            .payment-container{
+                height: 32rem;
+            }
+            .payment-container h2{
+                margin-top: -2rem;
+                font-size: 30px;
+            }
+            .payment-container input[type="text"],
+            .payment-container input[type="email"],
+            .payment-container input[type="number"],
+            .payment-container select {
+                height: 10px;
+            }
+            .payment-container button {
+                font-size: 14px;
+            }
+        }
+         /* Small screens (mobile devices) */
+         @media (max-width: 768px) {
+            .payment-container{
+                height: 20.48rem;
+            }
+            .payment-container h2{
+                margin-top: -1.28rem;
+                font-size: 19.2px;
+            }
+            .payment-container input[type="text"],
+            .payment-container input[type="email"],
+            .payment-container input[type="number"],
+            .payment-container select {
+                height: 6.4px;
+            }
+            .payment-container button {
+                font-size: 8.96px;
+            }
+        }
+
+        /* Extra small screens (less than 480px) */
+        @media (max-width: 480px) {
+            .payment-container{
+                height: 12.8rem;
+            }
+            .payment-container h2{
+                margin-top: -0.8rem;
+                font-size: 12px;
+            }
+            .payment-container input[type="text"],
+            .payment-container input[type="email"],
+            .payment-container input[type="number"],
+            .payment-container select {
+                height: 4px;
+            }
+            .payment-container button {
+                font-size: 5.6px;
+            }
+        }
     </style>
 </head>
 <body>

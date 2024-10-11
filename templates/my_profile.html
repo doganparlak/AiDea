@@ -189,6 +189,173 @@
             background-color: #333; /* Highlight color for premium users */
             color: #00ff00; /* Change text color or style */
         }
+        /* Large screens (desktop) */
+        @media (max-width: 1200px) {
+            body{
+                height: 26rem;
+            }
+            .sidebar {
+                width: 15%; /* Sidebar width for larger screens */
+            }
+
+            .sidebar .logout {
+                margin-top: 23rem;
+            }
+
+            .main-content {
+                margin-left: 15%; /* Maintain margin for main content */
+                width: 85%; /* Maintain width for main content */
+            }
+            .table-container {
+                margin-top: 1.5rem;
+                height: 10%;
+                width: 100%;
+                font-size: 10px;
+            }
+            .profile-section {
+                height: 30%;
+                font-size: 15px;
+                padding: 1.25rem;
+            }
+            .profile-info .info-actions button {
+                font-size: 15px; /* Increased font size */
+            }
+            .profile-info .info-actions .delete-button {
+                padding: 0rem; /* Adjusted padding */
+            }
+            .delete-button{
+                height: 1.75rem;
+                width: 12rem;
+            }
+            .comparison-section h3 {
+                font-size: 20px;
+            }
+            #subscription-plan {
+                width: 14rem;
+                height: 1.75rem; /* Adjust the value for your desired height */
+                font-size: 15px; /* Adjust font size as necessary */
+            }
+            .upgrade-button, .downgrade-button {
+                height: 1.75rem;
+                width: 12rem;
+                padding: 0rem;
+            }        
+            .comparison-table th, .comparison-table td{
+                font-size: 12px;
+            }
+        }
+
+         /* Small screens (mobile devices) */
+         @media (max-width: 768px) {
+            body{
+                height: 16.64rem;
+            }
+            .sidebar {
+                width: 100%; /* Full-width sidebar on small screens */
+                height: auto; /* Allow sidebar to expand */
+                position: relative; /* Relative positioning */
+            }
+            .sidebar .logout {
+                margin-top: 14rem;
+            }
+            .main-content {
+                margin-left: 0; /* Reset margin for main content */
+                width: 100%; /* Full-width main content */
+                padding: 1rem; /* Adjust padding */
+            }
+            .table-container {
+                margin-top: 0.96rem;
+                height: 10%;
+                width: 100%;
+                font-size: 6.4px;
+            }
+            .profile-section {
+                height: 30%;
+                font-size: 9.6px;
+                padding: 0.8rem;
+            }
+            .profile-info .info-actions button {
+                font-size: 9.6px; /* Increased font size */
+            }
+            .profile-info .info-actions .delete-button {
+                padding: 0rem; /* Adjusted padding */
+            }
+            .delete-button{
+                height: 1.12rem;
+                width: 7.68rem;
+            }
+            .comparison-section h3 {
+                font-size: 12.8px;
+            }
+            #subscription-plan {
+                width: 8.96rem;
+                height: 1.12rem; /* Adjust the value for your desired height */
+                font-size: 9.6px; /* Adjust font size as necessary */
+            }
+            .upgrade-button, .downgrade-button {
+                height: 1.12rem;
+                width: 7.68rem;
+                padding: 0rem;
+            }        
+            .comparison-table th, .comparison-table td{
+                font-size: 7.68px;
+            }
+        }
+
+        /* Extra small screens (less than 480px) */
+        @media (max-width: 480px) {
+            body{
+                height: 10.4rem;
+            }
+            .sidebar h2 {
+                font-size: 1.2rem; /* Smaller header size */
+            }
+
+            .sidebar a{
+                font-size: 0.9rem; 
+            }
+            .sidebar .logout {
+                font-size: 0.9rem; 
+                margin-top: 14rem;
+            }
+            .table-container {
+                margin-top: 0.6rem;
+                height: 10%;
+                width: 100%;
+                font-size: 4px;
+            }
+            .profile-section {
+                height: 30%;
+                font-size: 6px;
+                padding: 0.5rem;
+            }
+            .profile-info .info-actions button {
+                font-size: 6px; /* Increased font size */
+            }
+            .profile-info .info-actions .delete-button {
+                padding: 0rem; /* Adjusted padding */
+            }
+            .delete-button{
+                height: 0.7rem;
+                width: 4.8rem;
+            }
+            .comparison-section h3 {
+                font-size: 8px;
+            }
+            #subscription-plan {
+                width: 5.6rem;
+                height: 0.7rem; /* Adjust the value for your desired height */
+                font-size: 6px; /* Adjust font size as necessary */
+            }
+            .upgrade-button, .downgrade-button {
+                height: 0.7rem;
+                width: 4.8rem;
+                padding: 0rem;
+            }        
+            .comparison-table th, .comparison-table td{
+                font-size: 4.8px;
+            }       
+        }
 
     </style>
 </head>
