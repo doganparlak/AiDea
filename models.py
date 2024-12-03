@@ -869,7 +869,7 @@ class UCM_model(Model):
 class AI_model(Model):
     def __init__(self, data, symbol_name):
         super().__init__(data = data['Close'], open = data['Open'], high = data['High'], low = data['Low'], volume = data['Volume'], symbol_name = symbol_name)
-        self.model_type = 'Artificial Intelligence Model'
+        self.model_type = 'Generative Pre-trained Transformer Model'
         self.data_prompt = ''
         self.data_len = 30
     def train(self):
