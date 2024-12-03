@@ -331,6 +331,7 @@
                 <div class="symbol-list" id="symbol-list">
                     <!-- List of symbols will be dynamically added here -->
                 </div>
+                <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token() }}">
                 <!-- Add the new container here -->
                 <div class="additional-container">
 
@@ -349,9 +350,9 @@
                     <option value="AR">AR</option>
                     <option value="HWES">HWES</option>  
                     <option value="ARIMA">ARIMA</option>   
-                    <option value="SARIMA">ARCH</option>
-                    <option value="ARCH">UCM</option> 
-                    <option value="UCM">SARIMA</option> 
+                    <option value="SARIMA">SARIMA</option>
+                    <option value="ARCH">ARCH</option> 
+                    <option value="UCM">UCM</option> 
                     <option value="AI">AI</option> 
                 </select>
                 <select id="data_length">
@@ -389,17 +390,17 @@
             updateOptionsBasedOnAccountType();
 
             // Drawing text on the canvas
-            const canvas = document.getElementById('initial-canvas');
-            const ctx = canvas.getContext('2d');
+            const initialImage = document.getElementById('initial-canvas');
+            const ctx = initialImage.getContext('2d');
             ctx.fillStyle = 'white'; // Text color
             ctx.font = '54px Arial'; // Font size and family
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
              // Draw the first line
-            ctx.fillText('Fin-AiDea', canvas.width / 2, canvas.height / 2 - 250); // Adjusted Y position
+            ctx.fillText('Fin-AiDea', initialImage.width / 2, initialImage.height / 2 - 250); // Adjusted Y position
             // Draw the second line
             ctx.font = '34px Arial'; // Smaller font for the second line
-            ctx.fillText('Forecast Your Financial Future!', canvas.width / 2, canvas.height / 2 ); // Adjusted Y position
+            ctx.fillText('Forecast Your Financial Future!', initialImage.width / 2, initialImage.height / 2 ); // Adjusted Y position
 
             const loadingGif = document.getElementById('loading-gif');
             const plotImage = document.getElementById('plot-container');
@@ -450,8 +451,8 @@
         }
         function filterBasicOptions(modelSelect, dataLengthSelect, forecastDaysSelect) {
             const premiumModels = ['ARIMA', 'SARIMA', 'ARCH', 'UCM', 'AI'];
-            const premiumDataLengths = ['1_year', '2_years', '3_years', '4_years', '5_years'];
-            const premiumForecastDays = ['3_months', '4_months', '5_months', '6_months', '1_year'];
+            const premiumDataLengths = ['9_months', '1_year', '2_years', '3_years', '4_years', '5_years'];
+            const premiumForecastDays = ['2_months', '3_months', '4_months', '5_months', '6_months', '1_year'];
 
             // Disable premium models
             premiumModels.forEach(model => {
@@ -533,6 +534,7 @@
 
         function addSymbol() {
             const symbolInputField = document.getElementById('symbol-name');
+            const csrfToken = document.querySelector('input[name="csrf_token"]').value; // Get CSRF token
             let symbol = symbolInputField.value.trim();
             if (symbol) {
                 symbol = symbol.toUpperCase();
@@ -540,7 +542,8 @@
                 fetch('/add_symbol', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken // Include CSRF token here
                     },
                     body: JSON.stringify({ symbol })
                 })
@@ -558,10 +561,12 @@
         }
 
         function deleteSymbol(symbol) {
+            const csrfToken = document.querySelector('input[name="csrf_token"]').value; // Get CSRF token
             fetch('/delete_symbol', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken // Include CSRF token here
                 },
                 body: JSON.stringify({ symbol })
             })
@@ -590,7 +595,7 @@
                 'ARCH': 'Autoregressive Conditional Heteroskedasticity',
                 'UCM': 'Unobserved Components Model',
                 'SARIMA': 'Seasonal Autoregressive Integrated Moving Average',
-                'AI': 'Artificial Intelligence'
+                'AI': 'Generative Pre-trained Transformer'
             };
             return modelNames[modelType] || modelType; // Default to the model type if no match is found
         }
@@ -616,13 +621,19 @@
             const initialImage = document.getElementById('initial-canvas');
             const loadingGif = document.getElementById('loading-gif');
             const plotImage = document.getElementById('plot-container');
+            
             toggleVisibility(initialImage, 'none');
             toggleVisibility(loadingGif, 'block');
             toggleVisibility(plotImage, 'none'); // Hide the plot while loading
 
+            const csrfToken = document.querySelector('input[name="csrf_token"]').value; // Get CSRF token
             fetch('/predict', {
+                
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken // Include CSRF token here
+                },
                 body: JSON.stringify({ symbol, model_type: modelType, data_length: dataLength, forecast_days: forecastDays })
             })
             .then(response => response.json())
@@ -667,7 +678,7 @@
                     x: forecastData.dates,
                     y: forecastData.forecast_prices,
                     mode: 'lines',
-                    name: 'Forecasted Prices',
+                    name: 'Forecast',
                     line: { color: '#fff', width: 2}
                 };
                 

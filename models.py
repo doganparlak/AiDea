@@ -10,7 +10,6 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import r2_score, mean_squared_error
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import warnings
 from itertools import product
 import matplotlib.dates as mdates
@@ -25,7 +24,6 @@ import yaml
 
 # Suppress all warnings from statsmodels
 warnings.filterwarnings("ignore", category=Warning, module='statsmodels')
-plt.switch_backend('Agg') 
 
 def create_model(model_type, data, symbol_name):
     if model_type == 'AR':
@@ -871,7 +869,7 @@ class UCM_model(Model):
 class AI_model(Model):
     def __init__(self, data, symbol_name):
         super().__init__(data = data['Close'], open = data['Open'], high = data['High'], low = data['Low'], volume = data['Volume'], symbol_name = symbol_name)
-        self.model_type = 'Artificial Intelligence Model'
+        self.model_type = 'Generative Pre-trained Transformer Model'
         self.data_prompt = ''
         self.data_len = 30
     def train(self):

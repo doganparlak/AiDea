@@ -119,6 +119,87 @@
             width: 50px;
             height: 50px;
         }
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .login-container {
+                width: 350px;
+                padding: 40px;
+            }
+
+            .login-container h2 {
+                font-size: 28px;
+            }
+
+            .login-container input[type="email"],
+            .login-container input[type="password"] {
+                width: 80%;
+                padding: 12px;
+                font-size: 15px;
+            }
+
+            .login-container button {
+                width: 88%; /* Reduce width to fit better */
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            .login-container .links {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                width: 90%;
+                padding: 30px;
+            }
+
+            .login-container h2 {
+                font-size: 24px;
+            }
+
+            .login-container input[type="email"],
+            .login-container input[type="password"] {
+                width: 100%;
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .login-container button {
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            .login-container .links {
+                font-size: 14px;
+            }
+        }
+        @media (max-width: 480px) {
+            .login-container {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .login-container h2 {
+                font-size: 22px;
+            }
+
+            .login-container input[type="email"],
+            .login-container input[type="password"] {
+                width: 100%;
+                padding: 10px;
+                font-size: 12px;
+            }
+
+            .login-container button {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            .login-container .links {
+                font-size: 12px;
+            }
+        }
 
     </style>
 </head>
@@ -132,6 +213,7 @@
         <h2>Login to Fin-AiDea</h2>
 
         <form id="loginForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="email" id="email" placeholder="E-mail Address" required>
             <input type="password" id="password" placeholder="Password" required>
 
@@ -156,6 +238,8 @@
             event.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const csrfToken = document.querySelector('input[name="csrf_token"]').value; // Get CSRF token
+
 
             // Show loading overlay
             document.getElementById('loadingOverlay').style.display = 'flex';
@@ -163,7 +247,8 @@
             fetch('/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken // Include CSRF token here
                 },
                 body: JSON.stringify({
                     email: email,

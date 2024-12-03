@@ -84,6 +84,57 @@
             margin: 0;
             font-size: 1.1rem;
         }
+        /* Large screens (desktop) */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 15%; /* Sidebar width for larger screens */
+            }
+
+            .sidebar .logout {
+                margin-top: 23rem;
+            }
+
+            .main-content {
+                margin-left: 15%; /* Maintain margin for main content */
+                width: 85%; /* Maintain width for main content */
+            }
+        }
+
+         /* Small screens (mobile devices) */
+         @media (max-width: 768px) {
+            .sidebar {
+                width: 100%; /* Full-width sidebar on small screens */
+                height: auto; /* Allow sidebar to expand */
+                position: relative; /* Relative positioning */
+            }
+            .sidebar .logout {
+                margin-top: 14rem;
+            }
+            .main-content {
+                margin-left: 0; /* Reset margin for main content */
+                width: 100%; /* Full-width main content */
+                padding: 1rem; /* Adjust padding */
+            }
+        }
+
+        /* Extra small screens (less than 480px) */
+        @media (max-width: 480px) {
+            .sidebar h2 {
+                font-size: 1.2rem; /* Smaller header size */
+            }
+
+            .sidebar a{
+                font-size: 0.9rem; 
+            }
+            .sidebar .logout {
+                font-size: 0.9rem; 
+                margin-top: 14rem;
+            }
+
+            .references-section h3 {
+                font-size: 1.1rem; /* Smaller section heading */
+            }
+        }
     </style>
 </head>
 <body>
