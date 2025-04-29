@@ -645,6 +645,7 @@
                 // Prepare the candlestick data for Plotly
                 const historicalData = data.plot.historical_data;
                 const forecastData = data.plot.forecasted_data;
+                const backtestData = data.plot.backtest_data 
                 const volumeColors = historicalData.close.slice(1).map((close, i) => 
                     close >= historicalData.close[i] ? 'green' : 'red'
                 );
@@ -680,6 +681,15 @@
                     mode: 'lines',
                     name: 'Forecast',
                     line: { color: '#fff', width: 2}
+                };
+
+                // Validation predictions trace
+                const valPredictionsTrace = {
+                    x: backtestData.val_dates,
+                    y: backtestData.val_predictions,
+                    mode: 'lines',
+                    name: 'Backtest',
+                    line: { color: '#fff', dash: 'dot', width: 2 }
                 };
                 
                 const fullModelName = getFullModelName(modelType);
@@ -788,7 +798,7 @@
             };
 
                 
-                const plotData = [candlestickTrace, volumeTrace, forecastTrace];
+                const plotData = [candlestickTrace, volumeTrace, forecastTrace, valPredictionsTrace];
 
                 Plotly.newPlot('plot-container', plotData, layout, {
                     modeBarButtonsToRemove: [

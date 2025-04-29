@@ -6,3 +6,5 @@ __pycache__/
 docs/*
 instance/*
 dev/*
+settings.yaml
+config.py

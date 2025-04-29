@@ -84,7 +84,9 @@ class AR_model(Model):
         self.trained_model = None
         self.model_type = 'Autoregressive'
         self.stationary = False
-        self.show_backtest = False
+        self.show_backtest = True
+        self.last_val_predictions = None # To store the last validation split predictions
+        self.last_val_index = None # To store the index of the last validation split
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -111,8 +113,6 @@ class AR_model(Model):
 
             best_mse = float('inf')
             best_params = 'n', 1
-            self.last_val_predictions = None  # To store the last validation split predictions
-            self.last_val_index = None  # To store the index of the last validation split
 
             # Perform grid search with cross-validation on the training set
             # Choose the best params based on MSE score
@@ -121,6 +121,7 @@ class AR_model(Model):
             warnings.filterwarnings("ignore")
             for trend, lags in product(trends, lags_range):
                 mse_sum = 0
+                # Backtest visual data
                 val_predictions = None
                 val_index = None
                 for train_index, val_index in tscv.split(data):
@@ -144,8 +145,9 @@ class AR_model(Model):
                 if avg_mse < best_mse:
                     best_mse = avg_mse
                     best_params = (trend, lags)
-                    self.last_val_predictions = val_predictions
-                    self.last_val_index = val_index
+                    if self.show_backtest == True:
+                        self.last_val_predictions = val_predictions
+                        self.last_val_index = val_index
 
             best_trend, best_lags = best_params
         
@@ -167,7 +169,7 @@ class AR_model(Model):
        # Reverse log transformation if applied
         if not self.stationary:
             forecast_prices = np.exp(forecast_prices)
-            if self.last_val_predictions is not None and self.last_val_index is not None:
+            if self.show_backtest == True:
                self.last_val_predictions = np.exp(self.last_val_predictions)
 
         forecast_prices.iloc[0] = self.data.iloc[-1]
@@ -187,7 +189,11 @@ class AR_model(Model):
             },
             'forecasted_data': {
                 'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
-                'forecast_prices': forecast_prices.tolist(),
+                'forecast_prices': forecast_prices.tolist()
+            },
+            'backtest_data':{
+                'val_dates': self.data.index[self.last_val_index].strftime('%Y-%m-%d').tolist() if self.show_backtest == True else [],
+                'val_predictions': self.last_val_predictions.tolist() if self.show_backtest == True else [],
             }
         }
         
@@ -199,7 +205,10 @@ class ARIMA_model(Model):
         self.trained_model = None
         self.model_type = 'Autoregressive Integrated Moving Average'
         self.stationary = False
-        self.show_backtest = False
+        self.show_backtest = True
+        self.last_val_predictions = None  # To store the last validation split predictions
+        self.last_val_index = None  # To store the index of the last validation split
+
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
         result = adfuller(series)
@@ -225,9 +234,7 @@ class ARIMA_model(Model):
             
             best_mse = float('inf') 
             best_params = 't', 0, 0, 0
-            self.last_val_predictions = None  # To store the last validation split predictions
-            self.last_val_index = None  # To store the index of the last validation split
-
+            
             # Perform grid search with cross-validation on the training set
             # Choose the best params based on MSE score
             n_splits = 2
@@ -286,7 +293,7 @@ class ARIMA_model(Model):
        # Reverse log transformation if applied
         if not self.stationary:
             forecast_prices = np.exp(forecast_prices)
-            if self.last_val_predictions is not None and self.last_val_index is not None:
+            if self.show_backtest == True:
                 self.last_val_predictions = np.exp(self.last_val_predictions)
 
         forecast_prices.iloc[0] = self.data.iloc[-1]
@@ -307,6 +314,10 @@ class ARIMA_model(Model):
             'forecasted_data': {
                 'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
                 'forecast_prices': forecast_prices.tolist(),
+            },
+            'backtest_data':{
+                'val_dates': self.data.index[self.last_val_index].strftime('%Y-%m-%d').tolist() if self.show_backtest == True else [],
+                'val_predictions': self.last_val_predictions.tolist() if self.show_backtest == True else [],
             }
         }
         
@@ -318,7 +329,9 @@ class SARIMA_model(Model):
         self.trained_model = None
         self.model_type = 'Seasonal Autoregressive Integrated Moving Average'
         self.stationary = False
-        self.show_backtest = False
+        self.show_backtest = True
+        self.last_val_predictions = None
+        self.last_val_index = None
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -342,8 +355,8 @@ class SARIMA_model(Model):
 
         mse_sum = 0
         n_splits = 2
-        best_val_predictions = None
-        best_val_index = None
+        last_val_predictions = None
+        last_val_index = None
         tscv = TimeSeriesSplit(n_splits=n_splits)
         # Retrieve the current best_mse from user attributes
         best_mse = trial.user_attrs.get('best_mse', float('inf'))
@@ -357,8 +370,8 @@ class SARIMA_model(Model):
                 mse_sum += mse
                 # Store the predictions and index for the last validation split
                 if len(val_index) > 0 and val_index[0] == len(self.data) - len(val_split):
-                    best_val_predictions = predictions
-                    best_val_index = val_index
+                    last_val_predictions = predictions
+                    last_val_index = val_index
             except Exception as e:
                 return float('inf')  # Return a very low value if an error occurs
             
@@ -366,8 +379,8 @@ class SARIMA_model(Model):
         if avg_mse<best_mse:
             # Store the best predictions and index within the trial object for later retrieval
             trial.set_user_attr("best_mse", avg_mse)
-            trial.set_user_attr("best_val_predictions", best_val_predictions)
-            trial.set_user_attr("best_val_index", best_val_index)
+            trial.set_user_attr("last_val_predictions", last_val_predictions)
+            trial.set_user_attr("last_val_index", last_val_index)
 
         return avg_mse
     
@@ -398,8 +411,8 @@ class SARIMA_model(Model):
             best_trial = study.best_trial
 
             # Store the best validation predictions and index
-            self.last_val_predictions = best_trial.user_attrs["best_val_predictions"]
-            self.last_val_index = best_trial.user_attrs["best_val_index"]
+            self.last_val_predictions = best_trial.user_attrs["last_val_predictions"]
+            self.last_val_index = best_trial.user_attrs["last_val_index"]
 
             
             #print(f"Best MSE score: {best_mse:.4f}")
@@ -423,7 +436,7 @@ class SARIMA_model(Model):
         if not self.stationary:
             self.data = np.exp(self.data)
             forecast_prices = np.exp(forecast_prices)
-            if self.last_val_predictions is not None and self.last_val_index is not None:
+            if self.show_backtest == True:
                 self.last_val_predictions = np.exp(self.last_val_predictions)
 
         forecast_prices.iloc[0] = self.data.iloc[-1]
@@ -443,6 +456,10 @@ class SARIMA_model(Model):
             'forecasted_data': {
                 'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
                 'forecast_prices': forecast_prices.tolist(),
+            },
+            'backtest_data':{
+                'val_dates': self.data.index[self.last_val_index].strftime('%Y-%m-%d').tolist() if self.show_backtest == True else [],
+                'val_predictions': self.last_val_predictions.tolist() if self.show_backtest == True else [],
             }
         }
         
@@ -454,7 +471,9 @@ class HWES_model(Model):
         self.trained_model = None
         self.model_type = 'Holt-Winters Exponential Smoothing'
         self.stationary = False
-        self.show_backtest = False
+        self.show_backtest = True
+        self.last_val_predictions = None
+        self.last_val_index = None
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -476,8 +495,8 @@ class HWES_model(Model):
         use_boxcox = trial.suggest_categorical('use_boxcox', [True, False])
         mse_sum = 0
         n_splits = 2
-        best_val_predictions = None
-        best_val_index = None
+        last_val_predictions = None
+        last_val_index = None
         tscv = TimeSeriesSplit(n_splits=n_splits)
         
          # Retrieve the current best_mse from user attributes
@@ -494,8 +513,8 @@ class HWES_model(Model):
                 mse_sum += mse
                 # Store the predictions and index for the last validation split
                 if len(val_index) > 0 and val_index[0] == len(self.data) - len(val_split):
-                    best_val_predictions = predictions
-                    best_val_index = val_index
+                    last_val_predictions = predictions
+                    last_val_index = val_index
             except Exception as e:
                 return float('inf')  # Return a very low value if an error occurs
 
@@ -503,8 +522,8 @@ class HWES_model(Model):
         # Store the best predictions and index within the trial object for later retrieval
         if avg_mse < best_mse:
             trial.set_user_attr('best_mse', avg_mse)
-            trial.set_user_attr("best_val_predictions", best_val_predictions)
-            trial.set_user_attr("best_val_index", best_val_index)
+            trial.set_user_attr("last_val_predictions", last_val_predictions)
+            trial.set_user_attr("last_val_index", last_val_index)
         return avg_mse
     
     def train(self):
@@ -534,8 +553,8 @@ class HWES_model(Model):
         best_trial = study.best_trial
 
         # Store the best validation predictions and index
-        self.last_val_predictions = best_trial.user_attrs["best_val_predictions"]
-        self.last_val_index = best_trial.user_attrs["best_val_index"]
+        self.last_val_predictions = best_trial.user_attrs["last_val_predictions"]
+        self.last_val_index = best_trial.user_attrs["last_val_index"]
 
         
         #print(f"Best MSE score: {best_mse:.4f}")
@@ -580,6 +599,10 @@ class HWES_model(Model):
             'forecasted_data': {
                 'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
                 'forecast_prices': forecast_prices.tolist(),
+            },
+            'backtest_data':{
+                'val_dates': self.data.index[self.last_val_index].strftime('%Y-%m-%d').tolist() if self.show_backtest == True else [],
+                'val_predictions': self.last_val_predictions.tolist() if self.show_backtest == True else [],
             }
         }
         
@@ -591,7 +614,9 @@ class ARCH_model(Model):
         self.trained_model = None
         self.model_type = 'Autoregressive Conditional Heteroskedasticity'
         self.stationary = False
-        self.show_backtest = False
+        self.show_backtest = True
+        self.last_val_predictions = None
+        self.last_val_index = None
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -617,8 +642,8 @@ class ARCH_model(Model):
         mean = trial.suggest_categorical('mean', ['LS', 'ARX', 'HAR', 'HARX'])
         mse_sum = 0
         n_splits = 2
-        best_val_predictions = None
-        best_val_index = None
+        last_val_predictions = None
+        last_val_index = None
         tscv = TimeSeriesSplit(n_splits=n_splits)
         
         # Retrieve the current best_mse from user attributes
@@ -635,8 +660,8 @@ class ARCH_model(Model):
                 mse_sum += mse
                 # Store the predictions and index for the last validation split
                 if len(val_index) > 0 and val_index[0] == len(self.data) - len(val_split):
-                    best_val_predictions = predictions
-                    best_val_index = val_index
+                    last_val_predictions = predictions
+                    last_val_index = val_index
             except Exception as e:
                 return float('inf')  # Return a very low value if an error occurs
 
@@ -644,8 +669,8 @@ class ARCH_model(Model):
         if avg_mse<best_mse:
             # Store the best predictions and index within the trial object for later retrieval
             trial.set_user_attr("best_mse", avg_mse)
-            trial.set_user_attr("best_val_predictions", best_val_predictions)
-            trial.set_user_attr("best_val_index", best_val_index)
+            trial.set_user_attr("last_val_predictions", last_val_predictions)
+            trial.set_user_attr("last_val_index", last_val_index)
 
         return avg_mse
     
@@ -676,8 +701,8 @@ class ARCH_model(Model):
             best_trial = study.best_trial
 
             # Store the best validation predictions and index
-            self.last_val_predictions = best_trial.user_attrs["best_val_predictions"]
-            self.last_val_index = best_trial.user_attrs["best_val_index"]
+            self.last_val_predictions = best_trial.user_attrs["last_val_predictions"]
+            self.last_val_index = best_trial.user_attrs["last_val_index"]
 
             
             #print(f"Best MSE score: {best_mse:.4f}")
@@ -721,6 +746,10 @@ class ARCH_model(Model):
             'forecasted_data': {
                 'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
                 'forecast_prices': forecast_prices.tolist(),
+            },
+            'backtest_data':{
+                'val_dates': self.data.index[self.last_val_index].strftime('%Y-%m-%d').tolist() if self.show_backtest == True else [],
+                'val_predictions': self.last_val_predictions.tolist() if self.show_backtest == True else [],
             }
         }
         
@@ -732,7 +761,9 @@ class UCM_model(Model):
         self.trained_model = None
         self.model_type = 'Unobserved Components Model'
         self.stationary = False
-        self.show_backtest = False
+        self.show_backtest = True
+        self.last_val_predictions = None
+        self.last_val_index = None
 
     def check_stationarity(self, series, alpha=0.05):
         series = series.dropna()
@@ -757,8 +788,8 @@ class UCM_model(Model):
 
         mse_sum = 0
         n_splits = 2
-        best_val_predictions = None
-        best_val_index = None
+        last_val_predictions = None
+        last_val_index = None
         tscv = TimeSeriesSplit(n_splits=n_splits)
 
         # Retrieve the current best_mse from user attributes
@@ -775,8 +806,8 @@ class UCM_model(Model):
                 mse_sum += mse
                 # Store the predictions and index for the last validation split
                 if len(val_index) > 0 and val_index[0] == len(self.data) - len(val_split):
-                    best_val_predictions = predictions
-                    best_val_index = val_index
+                    last_val_predictions = predictions
+                    last_val_index = val_index
             except Exception as e:
                 return float('inf')  # Return a very low value if an error occurs
 
@@ -784,8 +815,8 @@ class UCM_model(Model):
         if avg_mse<best_mse:
             # Store the best predictions and index within the trial object for later retrieval
             trial.set_user_attr("best_mse", avg_mse)
-            trial.set_user_attr("best_val_predictions", best_val_predictions)
-            trial.set_user_attr("best_val_index", best_val_index)
+            trial.set_user_attr("last_val_predictions", last_val_predictions)
+            trial.set_user_attr("last_val_index", last_val_index)
 
         return avg_mse
     
@@ -816,8 +847,8 @@ class UCM_model(Model):
             best_trial = study.best_trial
 
             # Store the best validation predictions and index
-            self.last_val_predictions = best_trial.user_attrs["best_val_predictions"]
-            self.last_val_index = best_trial.user_attrs["best_val_index"]
+            self.last_val_predictions = best_trial.user_attrs["last_val_predictions"]
+            self.last_val_index = best_trial.user_attrs["last_val_index"]
 
             
             #print(f"Best MSE score: {best_mse:.4f}")
@@ -861,6 +892,10 @@ class UCM_model(Model):
             'forecasted_data': {
                 'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
                 'forecast_prices': forecast_prices.tolist(),
+            },
+            'backtest_data':{
+                'val_dates': self.data.index[self.last_val_index].strftime('%Y-%m-%d').tolist() if self.show_backtest == True else [],
+                'val_predictions': self.last_val_predictions.tolist() if self.show_backtest == True else [],
             }
         }
         
@@ -871,11 +906,15 @@ class AI_model(Model):
         super().__init__(data = data['Close'], open = data['Open'], high = data['High'], low = data['Low'], volume = data['Volume'], symbol_name = symbol_name)
         self.model_type = 'Generative Pre-trained Transformer Model'
         self.data_prompt = ''
-        self.data_len = 30
+        self.data_len = len(data)
+        self.last_val_len = len(data) // 3 # simulate time series split with n_splits = 2 as in other models
+        self.show_backtest = True
+        self.last_val_index = None
+        self.last_val_predictions = None
     def train(self):
         # Price data formatted as a string for the prompt, using the last 30 observations
         pass
-    def adjust_forecast_prices(self, forecast_prices):
+    def adjust_forecast_prices(self, forecast_prices): # Incase the scope is limited to BIST
         adjusted_prices = forecast_prices[:]
         for idx in range(len(adjusted_prices) - 1):
             current_price = adjusted_prices[idx]
@@ -897,12 +936,12 @@ class AI_model(Model):
     
     def forecast(self, forecast_days):
         # Function to generate forecast for a chunk
-        def generate_forecast(chunk):
+        def generate_forecast(chunk, num_forecast_days):
             prompt = (
                 f"Given the historical price data: {chunk}, "
-                f"forecast the next {forecast_days} days of prices. "
-                f"Provide a list of predicted prices for the next {forecast_days} days, "
-                f"formatted as: price1, price2, price3, ..., price{forecast_days}. "
+                f"forecast the next {num_forecast_days} days of prices. "
+                f"Provide a list of predicted prices for the next {num_forecast_days} days, "
+                f"formatted as: price1, price2, price3, ..., price{num_forecast_days}. "
                 f"Ensure realistic fluctuations with moderate changes between consecutive days. "
                 f"Give more weight to the most recent observations in your forecasting to better reflect recent market behavior. "
                 f"Make sure the first forecasted price is very close to the last price in the historical data to maintain continuity."
@@ -914,7 +953,7 @@ class AI_model(Model):
                         "content": prompt,
                     }
                 ],
-                model="gpt-3.5-turbo", 
+                model="gpt-4", 
                 max_tokens=2048,  # Limit the number of tokens in the response
                 temperature=0.2,  # Control the creativity of the model
             )
@@ -922,18 +961,28 @@ class AI_model(Model):
             extracted_prices = re.findall(r"[-+]?\d*\.\d+|\d+", decoded_output)
             return [float(price) for price in extracted_prices]
         
-        # Chunking the data and generating forecasts based on the last 30 observations
+      
+        # Generating backtest results
+        last_val_predictions = []
+        chunk = ', '.join(str(val) for val in self.data[:-self.last_val_len])  
+        chunk_backtest = generate_forecast(chunk, num_forecast_days=self.last_val_len-1)
+        last_val_predictions.extend(chunk_backtest)
+        self.last_val_predictions = last_val_predictions
+        # Generating forecasts 
         forecast_prices = []
-        chunk = ', '.join(str(val) for val in self.data[-self.data_len:])  # Only the last 30 values
-        chunk_forecast = generate_forecast(chunk)
+        chunk = ', '.join(str(val) for val in self.data)  
+        chunk_forecast = generate_forecast(chunk, num_forecast_days=forecast_days)
         forecast_prices.extend(chunk_forecast)
         # Limit forecast to the desired number of days
         forecast_prices = forecast_prices[1:forecast_days+1]
         # Apply the adjustment logic
-        forecast_prices = self.adjust_forecast_prices(forecast_prices)
+        # forecast_prices = self.adjust_forecast_prices(forecast_prices)
         # Create date range for forecasted data
+        self.last_val_index = self.data.index[-self.last_val_len:].strftime('%Y-%m-%d').tolist()
         forecast_dates = pd.date_range(start=self.data.index[-1] + pd.Timedelta(days=1), periods=len(forecast_prices), freq='D')    
         # Convert data to JSON in order to send to the frontend
+        print(forecast_prices)
+        print({'val_predictions': self.last_val_predictions if self.show_backtest == True else []})
         result = {
             'historical_data': {
                 'dates': self.data.index.strftime('%Y-%m-%d').tolist(),
@@ -946,7 +995,10 @@ class AI_model(Model):
             'forecasted_data': {
                 'dates': forecast_dates.strftime('%Y-%m-%d').tolist(),
                 'forecast_prices': forecast_prices,
+            },
+            'backtest_data':{
+                'val_dates': self.data.index[-self.last_val_len:].strftime('%Y-%m-%d').tolist() if self.show_backtest == True else [], 
+                'val_predictions': self.last_val_predictions if self.show_backtest == True else [],
             }
         }
-        
         return result
